@@ -6,6 +6,8 @@ import { History } from './components/History';
 import { Settings } from './components/Settings';
 import { Onboarding } from './components/Onboarding';
 import { Paywall } from './components/Paywall';
+import { InstallBanner } from './components/InstallBanner';
+import { usePWA } from './hooks/usePWA';
 import { useExpenses } from './hooks/useExpenses';
 import { initializeDB } from './db';
 
@@ -13,7 +15,10 @@ function App() {
   const [view, setView] = useState('dashboard'); // dashboard | history | settings
   const [showAdd, setShowAdd] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showInstallBanner, setShowInstallBanner] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  
+  const { canInstall, isIOS, install, isInstalled } = usePWA();
   
   const {
     loading,
@@ -134,6 +139,16 @@ function App() {
           />
         )}
       </AnimatePresence>
+      
+      {/* Show install banner after 3+ expenses and not yet installed */}
+      {showInstallBanner && !isInstalled && monthCount >= 3 && view === 'dashboard' && (
+        <InstallBanner
+          canInstall={canInstall}
+          isIOS={isIOS}
+          onInstall={install}
+          onDismiss={() => setShowInstallBanner(false)}
+        />
+      )}
     </div>
   );
 }
