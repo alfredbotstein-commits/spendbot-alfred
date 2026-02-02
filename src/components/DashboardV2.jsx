@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   GlassCard, 
@@ -17,6 +17,10 @@ import { AchievementsPage } from './Achievements';
 import { DailyChallenge } from './DailyChallenge';
 import { WeeklyReportTrigger } from './WeeklyReport';
 import { NoSpendDayBadge } from './NoSpendCelebration';
+import { FinancialFortuneCard } from './FinancialFortune';
+import { SpendingPersonalityCard } from './SpendingPersonality';
+import { BudgetHealthMeter, BudgetHealthBadge } from './BudgetHealth';
+import { useKonamiCode, useShakeDetection, KonamiEasterEgg, ShakeEasterEgg, SecretTapZone } from './EasterEggs';
 import { playSound } from '../utils/sounds';
 import { haptic } from '../utils/haptics';
 
@@ -204,12 +208,27 @@ export function DashboardV2({
   const [showRobotMessage, setShowRobotMessage] = useState(false);
   const [robotMessage, setRobotMessage] = useState(null);
   const [showAchievements, setShowAchievements] = useState(false);
+  const [showKonamiEgg, setShowKonamiEgg] = useState(false);
+  const [showShakeEgg, setShowShakeEgg] = useState(false);
 
   // Robot buddy hook
   const { mood, getContextualMessage } = useRobotBuddy({
     expenses,
     settings,
     monthTotal,
+  });
+
+  // Easter egg hooks
+  useKonamiCode(() => {
+    playSound('achievement');
+    haptic('achievement');
+    setShowKonamiEgg(true);
+  });
+
+  useShakeDetection(() => {
+    playSound('success');
+    haptic('success');
+    setShowShakeEgg(true);
   });
 
   // Calculate stats
@@ -374,32 +393,13 @@ export function DashboardV2({
           </div>
         </GlassCard>
 
-        {/* Budget Progress */}
+        {/* Budget Health Meter - Dramatic Replacement! */}
         {budgetPercentage !== null && (
-          <GlassCard className="mb-4">
-            <div className="flex items-center gap-4">
-              <ProgressRing
-                progress={budgetPercentage}
-                size={80}
-                strokeWidth={6}
-                color={budgetPercentage >= 100 ? 'danger' : budgetPercentage >= 80 ? 'warning' : 'accent'}
-              />
-              <div className="flex-1">
-                <p className="text-text-primary font-medium">
-                  {formatCurrency(monthTotal)} of {formatCurrency(settings.monthlyBudget)}
-                </p>
-                <p className="text-sm text-text-muted mt-1">
-                  {dailyBudgetRemaining > 0 ? (
-                    <>≈ {formatCurrency(dailyBudgetRemaining)}/day remaining</>
-                  ) : budgetPercentage >= 100 ? (
-                    <span className="text-danger">Budget exceeded</span>
-                  ) : (
-                    'On track!'
-                  )}
-                </p>
-              </div>
-            </div>
-          </GlassCard>
+          <BudgetHealthMeter
+            spent={monthTotal}
+            budget={settings.monthlyBudget}
+            daysLeft={daysLeft}
+          />
         )}
 
         {/* Weekly Report (Sundays) */}
@@ -424,6 +424,18 @@ export function DashboardV2({
             playSound('success');
             haptic('success');
           }}
+        />
+
+        {/* Financial Fortune - Daily "Horoscope" for Your Wallet */}
+        <FinancialFortuneCard 
+          expenses={expenses}
+          budget={settings?.monthlyBudget}
+        />
+
+        {/* Spending Personality Discovery */}
+        <SpendingPersonalityCard 
+          expenses={expenses}
+          categoryTotals={categoryTotals}
         />
 
         {/* Bento Grid Stats */}
@@ -548,6 +560,28 @@ export function DashboardV2({
           />
         )}
       </AnimatePresence>
+
+      {/* Easter Eggs */}
+      <KonamiEasterEgg 
+        show={showKonamiEgg} 
+        onClose={() => setShowKonamiEgg(false)} 
+      />
+      <ShakeEasterEgg 
+        show={showShakeEgg} 
+        onClose={() => setShowShakeEgg(false)}
+        expenses={expenses}
+      />
+
+      {/* Secret Tap Zone on Robot for extra fun */}
+      <SecretTapZone 
+        requiredTaps={7}
+        onActivate={() => {
+          playSound('achievement');
+          setRobotMessage("🤫 You found a secret! You're persistent... I like that.");
+          setShowRobotMessage(true);
+          setTimeout(() => setShowRobotMessage(false), 4000);
+        }}
+      />
     </AnimatedBackground>
   );
 }

@@ -6,6 +6,7 @@ import { Confetti, SuccessCheck } from './Confetti';
 import { formatCurrency } from '../utils/format';
 import { RobotBuddy, getRandomMessage, getCategoryPun } from './RobotBuddy';
 import { QuickAdd } from './QuickAdd';
+import { getSpendingRoast, AlternativeSpendingBadge } from './SpendingRoasts';
 
 export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] }) {
   const [amount, setAmount] = useState('');
@@ -14,6 +15,8 @@ export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] 
   const [success, setSuccess] = useState(false);
   const [robotReaction, setRobotReaction] = useState(null);
   const [robotMood, setRobotMood] = useState('happy');
+  const [showAlternative, setShowAlternative] = useState(false);
+  const [savedAmount, setSavedAmount] = useState(0);
 
   const amountCents = Math.round(parseFloat(amount || '0') * 100);
   const amountDollars = amountCents / 100;
@@ -21,6 +24,15 @@ export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] 
 
   // Get robot reaction based on amount and category
   const getRobotReaction = (dollars, categoryName = null) => {
+    // For larger amounts, use the roast system (50% chance)
+    if (dollars >= 20 && Math.random() < 0.5) {
+      const roast = getSpendingRoast(dollars, categoryName);
+      if (roast) {
+        const mood = dollars >= 100 ? 'worried' : dollars >= 50 ? 'surprised' : 'happy';
+        return { mood, message: roast, showAlternative: dollars >= 50 };
+      }
+    }
+    
     // 30% chance to use category pun if category is known
     if (categoryName && Math.random() < 0.3) {
       return { mood: 'happy', message: getCategoryPun(categoryName) };
@@ -57,11 +69,14 @@ export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] 
       const reaction = getRobotReaction(amountDollars, category?.name);
       setRobotMood(reaction.mood);
       setRobotReaction(reaction.message || getRandomMessage(reaction.type));
+      setSavedAmount(amountDollars);
+      setShowAlternative(reaction.showAlternative || false);
       setSuccess(true);
       
+      // Longer delay for roasts with alternatives
       setTimeout(() => {
         onClose();
-      }, 1500); // Extended to show robot reaction
+      }, reaction.showAlternative ? 2500 : 1500);
     } else {
       setSaving(false);
       // TODO: Show paywall
@@ -112,6 +127,17 @@ export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] 
               >
                 ✓ Saved!
               </motion.div>
+              {/* Show what else you could've bought (for fun shaming) */}
+              {showAlternative && savedAmount >= 50 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="mt-4"
+                >
+                  <AlternativeSpendingBadge amount={savedAmount} />
+                </motion.div>
+              )}
             </motion.div>
           ) : (
             <motion.div

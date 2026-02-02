@@ -13,6 +13,7 @@ import { Paywall } from './components/Paywall';
 import { InstallBanner } from './components/InstallBanner';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
+import { FunLoader } from './components/EasterEggs';
 import { usePWA } from './hooks/usePWA';
 import { getLocalMonthString } from './utils/dateUtils';
 import { useSupabaseExpenses } from './hooks/useSupabaseExpenses';
@@ -71,11 +72,11 @@ function AppContent() {
     }
   }, [user, settings?.onboardingComplete]);
 
-  // Loading state
+  // Loading state - with fun messages!
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-4xl animate-pulse">🤖</div>
+        <FunLoader message="Waking up the robot..." />
       </div>
     );
   }
@@ -88,14 +89,11 @@ function AppContent() {
     return <LandingPage onGetStarted={() => setShowAuth(true)} />;
   }
 
-  // Still loading data
+  // Still loading data - with rotating fun messages!
   if (expensesLoading || settingsLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-4xl animate-pulse mb-4">🤖</div>
-          <p className="text-text-secondary">Loading your data...</p>
-        </div>
+        <FunLoader />
       </div>
     );
   }
