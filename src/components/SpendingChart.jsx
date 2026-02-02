@@ -95,7 +95,7 @@ export function CategoryBreakdown({ categoryTotals, monthTotal }) {
       
       <div className="space-y-3">
         {categoryTotals.slice(0, 5).map((cat, i) => {
-          const percentage = Math.round((cat.total / monthTotal) * 100);
+          const percentage = monthTotal > 0 ? Math.round((cat.total / monthTotal) * 100) : 0;
           
           return (
             <motion.div
@@ -141,12 +141,12 @@ export function CategoryBreakdown({ categoryTotals, monthTotal }) {
  * SpendingPace - Shows if user is on track with budget
  */
 export function SpendingPace({ monthTotal, monthlyBudget, daysInMonth, currentDay }) {
-  if (!monthlyBudget || monthlyBudget <= 0) return null;
+  if (!monthlyBudget || monthlyBudget <= 0 || currentDay <= 0) return null;
 
   const expectedSpend = (monthlyBudget / daysInMonth) * currentDay;
   const actualSpend = monthTotal;
   const diff = actualSpend - expectedSpend;
-  const percentDiff = Math.round((diff / expectedSpend) * 100);
+  const percentDiff = expectedSpend > 0 ? Math.round((diff / expectedSpend) * 100) : 0;
   
   const isOnTrack = diff <= 0;
   const isClose = Math.abs(percentDiff) <= 10;

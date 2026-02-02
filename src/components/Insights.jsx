@@ -33,7 +33,7 @@ function getInsights(expenses, categories, monthTotal, streakInfo) {
   const sortedCategories = Object.entries(categoryTotals)
     .sort((a, b) => b[1] - a[1]);
   
-  if (sortedCategories.length > 0) {
+  if (sortedCategories.length > 0 && monthTotal > 0) {
     const [topCatId, topAmount] = sortedCategories[0];
     const topCat = categories.find(c => c.id === topCatId);
     const percentage = Math.round((topAmount / monthTotal) * 100);
@@ -57,9 +57,9 @@ function getInsights(expenses, categories, monthTotal, streakInfo) {
   const today = new Date();
   const dayOfMonth = today.getDate();
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  const projectedTotal = (monthTotal / dayOfMonth) * daysInMonth;
+  const projectedTotal = dayOfMonth > 0 ? (monthTotal / dayOfMonth) * daysInMonth : 0;
   
-  if (dayOfMonth > 7 && monthTotal > 0) {
+  if (dayOfMonth > 7 && monthTotal > 0 && projectedTotal > 0) {
     insights.push({
       emoji: '📈',
       text: `On pace for ${formatCurrency(projectedTotal)} this month`,

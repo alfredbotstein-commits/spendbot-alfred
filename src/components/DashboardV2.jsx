@@ -254,9 +254,9 @@ export function DashboardV2({
   const now = new Date();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const daysLeft = daysInMonth - now.getDate();
-  const dailyBudgetRemaining = settings?.monthlyBudget && daysLeft > 0
+  const dailyBudgetRemaining = settings?.monthlyBudget && daysLeft > 0 && monthTotal < settings.monthlyBudget
     ? (settings.monthlyBudget - monthTotal) / daysLeft
-    : null;
+    : settings?.monthlyBudget && monthTotal >= settings.monthlyBudget ? 0 : null;
 
   // Robot greeting on mount
   useEffect(() => {

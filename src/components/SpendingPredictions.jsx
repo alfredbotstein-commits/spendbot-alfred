@@ -142,7 +142,7 @@ export function SpendingPredictions({ expenses, monthlyBudget }) {
             <div className="text-text-muted text-xs uppercase tracking-wide">Days Left</div>
             <div className="text-text-primary font-semibold">{daysRemaining}</div>
           </div>
-          {budget && (
+          {budget && daysRemaining > 0 && (
             <div className="text-center">
               <div className="text-text-muted text-xs uppercase tracking-wide">Safe to Spend</div>
               <div className={`font-semibold ${

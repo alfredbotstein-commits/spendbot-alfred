@@ -88,7 +88,7 @@ export function SmartInsights({ expenses, monthlyBudget, isPremium }) {
     }
 
     // Top category insight
-    if (topCategory && monthExpenses.length >= 3) {
+    if (topCategory && monthExpenses.length >= 3 && monthTotal > 0) {
       const [catId, catTotal] = topCategory;
       const percentage = Math.round((catTotal / monthTotal) * 100);
       if (percentage >= 40) {
