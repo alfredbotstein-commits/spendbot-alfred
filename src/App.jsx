@@ -4,7 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LandingPage } from './components/LandingPage';
 import { AuthScreen } from './components/AuthScreen';
-import { Dashboard } from './components/Dashboard';
+import { DashboardV2 as Dashboard } from './components/DashboardV2';
 import { AddExpense } from './components/AddExpense';
 import { History } from './components/History';
 import { Settings } from './components/Settings';
