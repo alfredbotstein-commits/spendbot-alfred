@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthScreen } from './components/AuthScreen';
 import { Dashboard } from './components/Dashboard';
 import { AddExpense } from './components/AddExpense';
 import { History } from './components/History';
@@ -8,44 +10,47 @@ import { Onboarding } from './components/Onboarding';
 import { Paywall } from './components/Paywall';
 import { InstallBanner } from './components/InstallBanner';
 import { usePWA } from './hooks/usePWA';
-import { useExpenses } from './hooks/useExpenses';
-import { initializeDB } from './db';
+import { useSupabaseExpenses } from './hooks/useSupabaseExpenses';
+import { useSupabaseSettings } from './hooks/useSupabaseSettings';
+import { DEFAULT_CATEGORIES } from './constants/categories';
 
-function App() {
-  const [view, setView] = useState('dashboard'); // dashboard | history | settings
+function AppContent() {
+  const { user, profile, loading: authLoading, isPremium } = useAuth();
+  const [view, setView] = useState('dashboard');
   const [showAdd, setShowAdd] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(true);
-  const [initialized, setInitialized] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   
   const { canInstall, isIOS, install, isInstalled } = usePWA();
   
   const {
-    loading,
     expenses,
-    categories,
-    settings,
+    loading: expensesLoading,
     monthTotal,
     monthCount,
-    categoryTotals,
     canAddExpense,
     addExpense,
     deleteExpense,
+    getExpensesForExport,
+    clearAllExpenses,
+  } = useSupabaseExpenses();
+
+  const {
+    settings,
+    loading: settingsLoading,
     updateSettings,
-    streakInfo,
-    getAllExpenses,
-    clearAllData
-  } = useExpenses();
+  } = useSupabaseSettings();
 
+  // Check if user needs onboarding
   useEffect(() => {
-    initializeDB().then(() => setInitialized(true));
-  }, []);
+    if (user && !settings?.onboardingComplete) {
+      setShowOnboarding(true);
+    }
+  }, [user, settings?.onboardingComplete]);
 
-  const handleOnboardingComplete = async () => {
-    await updateSettings({ onboardingComplete: true });
-  };
-
-  if (!initialized || loading) {
+  // Loading state
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-4xl animate-pulse">🤖</div>
@@ -53,9 +58,33 @@ function App() {
     );
   }
 
+  // Not authenticated - show auth screen
+  if (!user) {
+    return <AuthScreen />;
+  }
+
+  // Still loading data
+  if (expensesLoading || settingsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl animate-pulse mb-4">🤖</div>
+          <p className="text-text-secondary">Loading your data...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Show onboarding for new users
-  if (!settings?.onboardingComplete) {
-    return <Onboarding onComplete={handleOnboardingComplete} />;
+  if (showOnboarding) {
+    return (
+      <Onboarding 
+        onComplete={async () => {
+          await updateSettings({ onboardingComplete: true });
+          setShowOnboarding(false);
+        }} 
+      />
+    );
   }
 
   const handleAddClick = () => {
@@ -67,14 +96,35 @@ function App() {
   };
 
   const handleSave = async (amount, categoryId) => {
-    return addExpense(amount, categoryId);
+    const result = await addExpense({ amount, categoryId });
+    if (result.limitReached) {
+      setShowPaywall(true);
+    }
+    return result;
   };
 
   const handleUpgrade = () => {
-    // In a real app, this would open Stripe/IAP
-    // For now, just toggle premium for testing
-    updateSettings({ isPremium: true });
+    // TODO: Integrate Stripe checkout
+    // For now, just close the paywall
     setShowPaywall(false);
+    // Will redirect to Stripe in the full implementation
+    alert('Stripe integration coming soon!');
+  };
+
+  // Calculate category totals
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const monthExpenses = expenses.filter(e => e.date.startsWith(currentMonth));
+  const categoryTotals = DEFAULT_CATEGORIES.map(cat => {
+    const total = monthExpenses
+      .filter(e => e.category_id === cat.id)
+      .reduce((sum, e) => sum + e.amount, 0);
+    return { ...cat, total };
+  }).filter(c => c.total > 0);
+
+  // Streak info from settings
+  const streakInfo = {
+    current: settings?.streakData?.currentStreak || 0,
+    longest: settings?.streakData?.longestStreak || 0,
   };
 
   return (
@@ -85,9 +135,9 @@ function App() {
             key="dashboard"
             monthTotal={monthTotal}
             expenses={expenses}
-            categories={categories}
+            categories={DEFAULT_CATEGORIES}
             categoryTotals={categoryTotals}
-            settings={settings}
+            settings={{ ...settings, isPremium }}
             monthCount={monthCount}
             streakInfo={streakInfo}
             onAddClick={handleAddClick}
@@ -100,7 +150,7 @@ function App() {
           <History
             key="history"
             expenses={expenses}
-            categories={categories}
+            categories={DEFAULT_CATEGORIES}
             onDelete={deleteExpense}
             onBack={() => setView('dashboard')}
           />
@@ -109,12 +159,14 @@ function App() {
         {view === 'settings' && (
           <Settings
             key="settings"
-            settings={settings}
-            categories={categories}
+            settings={{ ...settings, isPremium }}
+            categories={DEFAULT_CATEGORIES}
             onUpdate={updateSettings}
-            onExport={getAllExpenses}
-            onClearAll={clearAllData}
+            onExport={getExpensesForExport}
+            onClearAll={clearAllExpenses}
             onBack={() => setView('dashboard')}
+            user={user}
+            profile={profile}
           />
         )}
       </AnimatePresence>
@@ -122,7 +174,7 @@ function App() {
       <AnimatePresence>
         {showAdd && (
           <AddExpense
-            categories={categories}
+            categories={DEFAULT_CATEGORIES}
             canAdd={canAddExpense}
             onSave={handleSave}
             onClose={() => setShowAdd(false)}
@@ -140,7 +192,6 @@ function App() {
         )}
       </AnimatePresence>
       
-      {/* Show install banner after 3+ expenses and not yet installed */}
       {showInstallBanner && !isInstalled && monthCount >= 3 && view === 'dashboard' && (
         <InstallBanner
           canInstall={canInstall}
@@ -150,6 +201,14 @@ function App() {
         />
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

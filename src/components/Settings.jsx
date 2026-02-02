@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../utils/format';
+import { signOut } from '../lib/supabase';
 
 function SettingRow({ label, description, children }) {
   return (
-    <div className="flex items-center justify-between py-4 border-b border-border">
+    <div className="flex items-center justify-between py-4 border-b border-border last:border-b-0">
       <div className="flex-1">
         <div className="text-text-primary font-medium">{label}</div>
         {description && (
@@ -13,22 +14,6 @@ function SettingRow({ label, description, children }) {
       </div>
       <div className="ml-4">{children}</div>
     </div>
-  );
-}
-
-function Toggle({ checked, onChange }) {
-  return (
-    <button
-      onClick={() => onChange(!checked)}
-      className={`relative w-12 h-7 rounded-full transition-colors ${
-        checked ? 'bg-accent' : 'bg-surface-raised'
-      }`}
-    >
-      <motion.div
-        animate={{ x: checked ? 22 : 2 }}
-        className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-md"
-      />
-    </button>
   );
 }
 
@@ -75,11 +60,13 @@ function ConfirmModal({ show, title, message, confirmText, onConfirm, onCancel, 
   );
 }
 
-export function Settings({ settings, categories, onUpdate, onExport, onClearAll, onBack }) {
+export function Settings({ settings, categories, onUpdate, onExport, onClearAll, onBack, user, profile }) {
   const [budget, setBudget] = useState(settings?.monthlyBudget || '');
   const [showBudgetInput, setShowBudgetInput] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const handleBudgetSave = () => {
     const value = parseFloat(budget);
@@ -99,7 +86,7 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
       // Build CSV
       const headers = ['Date', 'Category', 'Amount', 'Note'];
       const rows = expenses.map(e => {
-        const cat = categories?.find(c => c.id === e.categoryId);
+        const cat = categories?.find(c => c.id === e.category_id);
         return [
           new Date(e.date).toISOString(),
           cat?.name || 'Other',
@@ -130,6 +117,21 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
     setShowClearConfirm(false);
   };
 
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    await signOut();
+    // Auth state change will redirect to login
+  };
+
+  // Get provider info from user metadata
+  const getProviderName = () => {
+    if (!user) return null;
+    const provider = user.app_metadata?.provider;
+    if (provider === 'google') return 'Google';
+    if (provider === 'apple') return 'Apple';
+    return 'Email';
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -149,6 +151,38 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
       </div>
 
       <div className="px-6 py-4">
+        {/* Account Section */}
+        <div className="mb-8">
+          <h2 className="text-sm font-semibold text-text-secondary mb-2 uppercase tracking-wider">
+            Account
+          </h2>
+          <div className="bg-surface-raised rounded-2xl px-4">
+            <SettingRow
+              label={profile?.full_name || user?.email?.split('@')[0] || 'User'}
+              description={user?.email}
+            >
+              {profile?.avatar_url && (
+                <img 
+                  src={profile.avatar_url} 
+                  alt="" 
+                  className="w-10 h-10 rounded-full"
+                />
+              )}
+            </SettingRow>
+            <SettingRow
+              label="Signed in with"
+              description={getProviderName()}
+            >
+              <button 
+                onClick={() => setShowSignOutConfirm(true)}
+                className="text-danger font-medium"
+              >
+                Sign Out
+              </button>
+            </SettingRow>
+          </div>
+        </div>
+
         {/* Budget Section */}
         <div className="mb-8">
           <h2 className="text-sm font-semibold text-text-secondary mb-2 uppercase tracking-wider">
@@ -196,13 +230,13 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
           <div className="bg-surface-raised rounded-2xl px-4">
             <SettingRow
               label="SpendBot Premium"
-              description={settings?.isPremium ? 'Unlimited expenses' : '50 expenses/month on free plan'}
+              description={settings?.isPremium ? 'Lifetime access — unlimited expenses' : '50 expenses/month on free plan'}
             >
               {settings?.isPremium ? (
                 <span className="text-success font-medium">Active ✓</span>
               ) : (
                 <button className="px-4 py-2 bg-accent text-white rounded-xl font-medium text-sm">
-                  Upgrade $4.99/mo
+                  Upgrade $9.99
                 </button>
               )}
             </SettingRow>
@@ -244,7 +278,7 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
         {/* About Section */}
         <div className="text-center py-8 text-text-muted">
           <div className="text-3xl mb-2">🤖</div>
-          <div className="text-sm">SpendBot v1.0.0</div>
+          <div className="text-sm">SpendBot v1.1.0</div>
           <div className="text-xs mt-1">Built by Loopspur</div>
         </div>
       </div>
@@ -258,6 +292,17 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
         danger={true}
         onConfirm={handleClearAll}
         onCancel={() => setShowClearConfirm(false)}
+      />
+
+      {/* Sign Out Confirmation Modal */}
+      <ConfirmModal
+        show={showSignOutConfirm}
+        title="Sign Out?"
+        message="You'll need to sign in again to access your expenses."
+        confirmText={signingOut ? "Signing out..." : "Sign Out"}
+        danger={false}
+        onConfirm={handleSignOut}
+        onCancel={() => setShowSignOutConfirm(false)}
       />
     </motion.div>
   );

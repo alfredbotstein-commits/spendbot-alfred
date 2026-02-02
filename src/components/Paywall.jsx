@@ -57,11 +57,11 @@ export function Paywall({ monthCount, onUpgrade, onClose }) {
         {/* Price */}
         <div className="text-center mb-6">
           <div className="flex items-baseline justify-center gap-1">
-            <span className="text-4xl font-bold text-text-primary">$4.99</span>
-            <span className="text-text-muted">/month</span>
+            <span className="text-4xl font-bold text-text-primary">$9.99</span>
+            <span className="text-text-muted">lifetime</span>
           </div>
           <p className="text-text-muted text-sm mt-1">
-            Cancel anytime. Less than a coffee ☕
+            One-time purchase. Yours forever ✨
           </p>
         </div>
 
