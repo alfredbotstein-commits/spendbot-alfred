@@ -14,6 +14,11 @@ import {
 import { formatCurrency, getCurrentMonthName } from '../utils/format';
 import { RobotBuddy, useRobotBuddy, getRandomMessage } from './RobotBuddy';
 import { AchievementsPage } from './Achievements';
+import { DailyChallenge } from './DailyChallenge';
+import { WeeklyReportTrigger } from './WeeklyReport';
+import { NoSpendDayBadge } from './NoSpendCelebration';
+import { playSound } from '../utils/sounds';
+import { haptic } from '../utils/haptics';
 
 /**
  * DashboardV2 - A completely redesigned, polished dashboard
@@ -396,6 +401,30 @@ export function DashboardV2({
             </div>
           </GlassCard>
         )}
+
+        {/* Weekly Report (Sundays) */}
+        <WeeklyReportTrigger 
+          expenses={expenses} 
+          monthlyBudget={settings?.monthlyBudget} 
+        />
+
+        {/* No Spend Day Celebration */}
+        <NoSpendDayBadge 
+          expenses={expenses}
+          onCelebrate={() => {
+            playSound('achievement');
+            haptic('achievement');
+          }}
+        />
+
+        {/* Daily Challenge */}
+        <DailyChallenge 
+          expenses={expenses}
+          onComplete={(challenge) => {
+            playSound('success');
+            haptic('success');
+          }}
+        />
 
         {/* Bento Grid Stats */}
         <BentoGrid className="mb-4">

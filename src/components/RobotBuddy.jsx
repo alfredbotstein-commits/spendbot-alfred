@@ -30,6 +30,95 @@ const MESSAGES = {
     "Back for more! I love the dedication.",
     "Let's see what the damage is...",
     "*beep boop* Expense tracking mode: ACTIVATED",
+    "Oh good, you're here. I was getting bored.",
+    "Welcome back! Your wallet missed you. (Not really.)",
+    "Let's get this bread... by tracking where it went.",
+  ],
+  // Random thoughts that appear occasionally
+  showerThoughts: [
+    "Do robots dream of electric receipts?",
+    "If a tree falls in a forest and no one tracks the lumber cost...",
+    "I wonder if other budget apps are jealous of us.",
+    "Technically, I'm your financial therapist. And I work for free.",
+    "Fun fact: I've never spent a dollar. Must be nice.",
+    "What if money was called 'adult points'? Would that help?",
+    "I've been thinking... nope, lost it. Anyway, track something!",
+    "Plot twist: the real treasure was the expenses we tracked along the way.",
+    "Broke is just 'pre-rich' if you think about it.",
+    "Somewhere, a spreadsheet is crying that you chose me instead.",
+  ],
+  // Category-specific puns
+  categoryPuns: {
+    food: [
+      "That's a tasty expense! 🍕",
+      "Fuel for the human machine. Noted!",
+      "Eating your way through the budget, I see.",
+      "Did it spark joy? Did it fill belly? Worth it.",
+    ],
+    coffee: [
+      "Ah yes, the sacred bean water ritual.",
+      "Espresso yourself! (I'm so sorry.)",
+      "A latte money... get it? I'll stop.",
+      "Caffeine: because adulting is hard.",
+    ],
+    shopping: [
+      "Retail therapy is valid therapy.",
+      "Treat yourself! (Within reason. Ish.)",
+      "Things acquired. Dopamine dispensed.",
+      "Shopping is just hunting but with more receipts.",
+    ],
+    transport: [
+      "Gotta go fast! Or... moderately paced.",
+      "Vroom vroom goes the budget.",
+      "Getting from A to B ain't free.",
+      "At least you're going places! Literally.",
+    ],
+    entertainment: [
+      "You deserve nice things. This counts.",
+      "Life's too short for no fun expenses.",
+      "Entertainment budget: money well wasted.",
+      "Joy: purchased. No refunds needed.",
+    ],
+    health: [
+      "Investing in yourself! I approve.",
+      "Health is wealth (that's why it's expensive).",
+      "Your body called. It says thanks.",
+      "Self-care isn't selfish, it's mandatory.",
+    ],
+    bills: [
+      "Ah, the joys of being an adult.",
+      "Bills: life's most boring subscription.",
+      "This one's not fun but it's responsible. Gold star.",
+      "Keeping the lights on. Literally.",
+    ],
+    other: [
+      "A mystery expense! How exciting.",
+      "Miscellaneous: the 'I don't want to explain' category.",
+      "Filed under: things happened.",
+      "Other vibes only.",
+    ],
+  },
+  // Gentle roasts for overspending
+  gentleRoasts: [
+    "Your wallet just sent me a distress signal. 🆘",
+    "I'm not saying you have a problem, but... well, actually...",
+    "Financial advisor mode: 👀",
+    "The budget called. It's feeling a little attacked.",
+    "Spending money like it's going out of style! (Please don't.)",
+    "Your bank account asked me to stage an intervention.",
+    "On a scale of 1 to broke, we're at 'creative budgeting'.",
+    "I'm legally required to say: you okay, bestie?",
+  ],
+  // Hype messages for good behavior
+  hypeMessages: [
+    "LOOK AT YOU being financially responsible!",
+    "Saving money? In THIS economy? Iconic.",
+    "Your future self just high-fived you.",
+    "Budget goals: ACHIEVED. You absolute legend.",
+    "This is what peak performance looks like.",
+    "Somebody call a financial influencer, we got content!",
+    "Not to be dramatic, but you're my favorite human.",
+    "✨ Main character energy ✨ but make it fiscal.",
   ],
   smallExpense: [
     "Nice! Small purchases add up to big savings.",
@@ -114,6 +203,52 @@ const MESSAGES = {
     "Nothing here... suspiciously nothing. 🤔",
     "Zero expenses. Are you okay? Do you need anything?",
     "Empty! Like my social calendar. Wait, I'm a robot.",
+    "A rare sight: untouched budget. Screenshot this.",
+    "No spending? Who even ARE you?",
+  ],
+  // Morning messages (5am-11am)
+  morning: [
+    "Good morning! Let's NOT immediately spend money.",
+    "Rise and shine! Your budget is ready to fight.",
+    "Morning! Plot twist: we're gonna be responsible today.",
+    "☀️ New day, new chance to not buy stuff we don't need.",
+    "Coffee first, then we track. I get it.",
+  ],
+  // Afternoon messages (11am-5pm)
+  afternoon: [
+    "Afternoon check-in! How's the wallet holding up?",
+    "Prime impulse-buying hours. Stay strong, soldier.",
+    "Lunch money tracked? Good human.",
+    "It's the afternoon slump. Don't online shop. I'm watching.",
+  ],
+  // Evening messages (5pm-11pm)
+  evening: [
+    "Evening! Time to reflect on today's financial choices.",
+    "End of day damage report incoming...",
+    "Wine o'clock? Track it, don't regret it.",
+    "How much damage did we do today? Let's find out!",
+    "Dinnertime! The second most expensive meal.",
+  ],
+  // Weekend messages
+  weekend: [
+    "Weekend mode! Budgets still apply. Sorry.",
+    "It's the weekend! Try not to go feral on spending.",
+    "Saturday/Sunday: when 'treat yourself' becomes a lifestyle.",
+    "Weekend warrior? More like weekend financial survivor.",
+  ],
+  // Payday vibes
+  payday: [
+    "Fresh paycheck energy! ...aaand it's gone.",
+    "Money just hit! Let's watch it leave together.",
+    "Payday! For approximately 3 days of serotonin.",
+    "Account looking healthy! Let's see how long that lasts.",
+  ],
+  // End of month panic
+  endOfMonth: [
+    "End of month! Let's assess the damage.",
+    "Month's almost over. How are we feeling? Financially?",
+    "Final countdown! Budget review time.",
+    "Monthly recap mode: no judgment, just numbers.",
   ],
 };
 
@@ -128,6 +263,52 @@ function getRandomMessage(category, replacements = {}) {
   });
   
   return message;
+}
+
+// Get time-based greeting
+function getTimeBasedGreeting() {
+  const hour = new Date().getHours();
+  const day = new Date().getDay();
+  const date = new Date().getDate();
+  
+  // Weekend vibes
+  if (day === 0 || day === 6) {
+    if (Math.random() > 0.5) return getRandomMessage('weekend');
+  }
+  
+  // End of month (last 3 days)
+  if (date >= 28) {
+    if (Math.random() > 0.6) return getRandomMessage('endOfMonth');
+  }
+  
+  // Time-based
+  if (hour >= 5 && hour < 11) return getRandomMessage('morning');
+  if (hour >= 11 && hour < 17) return getRandomMessage('afternoon');
+  if (hour >= 17 && hour < 23) return getRandomMessage('evening');
+  
+  return getRandomMessage('lateNight');
+}
+
+// Get a shower thought (5% chance on load)
+function maybeGetShowerThought() {
+  if (Math.random() < 0.05) {
+    return getRandomMessage('showerThoughts');
+  }
+  return null;
+}
+
+// Get category-specific pun
+function getCategoryPun(category) {
+  const normalizedCategory = category?.toLowerCase() || 'other';
+  const puns = MESSAGES.categoryPuns[normalizedCategory] || MESSAGES.categoryPuns.other;
+  return puns[Math.floor(Math.random() * puns.length)];
+}
+
+// Get spending reaction based on budget status
+function getSpendingReaction(percentOfBudget) {
+  if (percentOfBudget > 1.2) return getRandomMessage('gentleRoasts');
+  if (percentOfBudget < 0.5) return getRandomMessage('hypeMessages');
+  return null;
 }
 
 // Determine robot mood based on context
@@ -194,25 +375,39 @@ export function RobotBuddy({
   };
 
   // Easter egg: tap the robot multiple times
+  const secretMessages = [
+    { count: 3, message: "Hey! 👋" },
+    { count: 5, message: "That tickles! 🤭" },
+    { count: 8, message: "I'm working here! 💼" },
+    { count: 10, message: "Okay okay, I'm paying attention!" },
+    { count: 13, message: "Are you... flirting with me? 😳" },
+    { count: 15, message: "🎵 Never gonna give you up... 🎵" },
+    { count: 18, message: "I'm telling your bank about this." },
+    { count: 20, message: "You really have nothing better to do, huh?" },
+    { count: 23, message: "Fine. Here's a secret: I believe in you. 💪" },
+    { count: 25, message: "Achievement unlocked: Robot Whisperer 🏆" },
+    { count: 30, message: "Okay NOW I'm impressed." },
+    { count: 35, message: "We should get you a hobby..." },
+    { count: 40, message: "🥚 You found the secret egg! (Not really, but cool.)" },
+    { count: 50, message: "FIFTY TAPS?! You're either bored or legendary." },
+  ];
+  
   const handleTap = () => {
     const newCount = tapCount + 1;
     setTapCount(newCount);
     
-    if (newCount === 5) {
-      setSecretMessage("Hey! That tickles!");
-    } else if (newCount === 10) {
-      setSecretMessage("Okay okay, I'm awake!");
-    } else if (newCount === 15) {
-      setSecretMessage("🎵 Never gonna give you up... 🎵");
-    } else if (newCount === 20) {
-      setSecretMessage("You really have nothing better to do, huh?");
-    } else if (newCount >= 25) {
-      setSecretMessage("Achievement unlocked: Robot Botherer 🏆");
+    const secretMatch = secretMessages.find(s => s.count === newCount);
+    if (secretMatch) {
+      setSecretMessage(secretMatch.message);
+    }
+    
+    // Reset after reaching max
+    if (newCount >= 50) {
       setTapCount(0);
     }
     
-    // Clear secret message after 2 seconds
-    setTimeout(() => setSecretMessage(null), 2000);
+    // Clear secret message after 2.5 seconds
+    setTimeout(() => setSecretMessage(null), 2500);
     
     if (onTap) onTap();
   };
@@ -312,4 +507,12 @@ export function useRobotBuddy({ expenses, settings, monthTotal }) {
   };
 }
 
-export { MESSAGES, EXPRESSIONS, getRandomMessage };
+export { 
+  MESSAGES, 
+  EXPRESSIONS, 
+  getRandomMessage,
+  getTimeBasedGreeting,
+  maybeGetShowerThought,
+  getCategoryPun,
+  getSpendingReaction,
+};

@@ -4,7 +4,7 @@ import { NumberPad } from './NumberPad';
 import { CategorySelector } from './CategorySelector';
 import { Confetti, SuccessCheck } from './Confetti';
 import { formatCurrency } from '../utils/format';
-import { RobotBuddy, getRandomMessage } from './RobotBuddy';
+import { RobotBuddy, getRandomMessage, getCategoryPun } from './RobotBuddy';
 import { QuickAdd } from './QuickAdd';
 
 export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] }) {
@@ -19,8 +19,13 @@ export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] 
   const amountDollars = amountCents / 100;
   const isValid = amountCents > 0 && category !== null;
 
-  // Get robot reaction based on amount
-  const getRobotReaction = (dollars) => {
+  // Get robot reaction based on amount and category
+  const getRobotReaction = (dollars, categoryName = null) => {
+    // 30% chance to use category pun if category is known
+    if (categoryName && Math.random() < 0.3) {
+      return { mood: 'happy', message: getCategoryPun(categoryName) };
+    }
+    
     if (dollars < 10) return { mood: 'happy', type: 'smallExpense' };
     if (dollars < 50) return { mood: 'happy', type: 'mediumExpense' };
     if (dollars < 200) return { mood: 'surprised', type: 'largeExpense' };
@@ -48,10 +53,10 @@ export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] 
     const result = await onSave(amountCents, category.id);
     
     if (result.success) {
-      // Get robot reaction based on amount
-      const reaction = getRobotReaction(amountDollars);
+      // Get robot reaction based on amount and category
+      const reaction = getRobotReaction(amountDollars, category?.name);
       setRobotMood(reaction.mood);
-      setRobotReaction(getRandomMessage(reaction.type));
+      setRobotReaction(reaction.message || getRandomMessage(reaction.type));
       setSuccess(true);
       
       setTimeout(() => {
