@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LandingPage } from './components/LandingPage';
@@ -10,10 +11,13 @@ import { Settings } from './components/Settings';
 import { Onboarding } from './components/Onboarding';
 import { Paywall } from './components/Paywall';
 import { InstallBanner } from './components/InstallBanner';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { TermsPage } from './pages/TermsPage';
 import { usePWA } from './hooks/usePWA';
 import { useSupabaseExpenses } from './hooks/useSupabaseExpenses';
 import { useSupabaseSettings } from './hooks/useSupabaseSettings';
 import { DEFAULT_CATEGORIES } from './constants/categories';
+import { initAudio } from './utils/sounds';
 
 function AppContent() {
   const { user, profile, loading: authLoading, isPremium } = useAuth();
@@ -22,7 +26,7 @@ function AppContent() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showInstallBanner, setShowInstallBanner] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showAuth, setShowAuth] = useState(false); // Track if user clicked "Get Started"
+  const [showAuth, setShowAuth] = useState(false);
   
   const { canInstall, isIOS, install, isInstalled } = usePWA();
   
@@ -43,6 +47,21 @@ function AppContent() {
     loading: settingsLoading,
     updateSettings,
   } = useSupabaseSettings();
+
+  // Initialize audio on first interaction
+  useEffect(() => {
+    const handleInteraction = () => {
+      initAudio();
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+    };
+    window.addEventListener('click', handleInteraction);
+    window.addEventListener('touchstart', handleInteraction);
+    return () => {
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+    };
+  }, []);
 
   // Check if user needs onboarding
   useEffect(() => {
@@ -110,9 +129,7 @@ function AppContent() {
 
   const handleUpgrade = () => {
     // TODO: Integrate Stripe checkout
-    // For now, just close the paywall
     setShowPaywall(false);
-    // Will redirect to Stripe in the full implementation
     alert('Stripe integration coming soon!');
   };
 
@@ -212,9 +229,20 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <BrowserRouter>
+      <Routes>
+        {/* Public pages - accessible without auth */}
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        
+        {/* Main app - wrapped in AuthProvider */}
+        <Route path="/*" element={
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        } />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
