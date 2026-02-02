@@ -17,15 +17,29 @@ const CHALLENGE_TYPES = [
     emoji: '🚫',
     description: 'Don\'t spend anything today',
     difficulty: 'hard',
-    checkComplete: (todayTotal) => todayTotal === 0,
+    // Only complete if it's late enough in the day (after 6 PM) AND no spending
+    // This prevents instant completion at midnight
+    checkComplete: (todayTotal, todayCount) => {
+      const hour = new Date().getHours();
+      return todayTotal === 0 && hour >= 18;
+    },
+    checkProgress: (todayTotal) => todayTotal === 0,
+    progressText: (todayTotal) => todayTotal === 0 
+      ? 'Going strong! Complete after 6 PM 💪' 
+      : `Spent ${formatCurrency(todayTotal)} - try again tomorrow!`,
   },
   {
     id: 'under-20',
-    name: 'Minimalist Monday',
+    name: 'Minimalist Mode',
     emoji: '🪶',
     description: 'Keep spending under $20 today',
     difficulty: 'medium',
-    checkComplete: (todayTotal) => todayTotal <= 2000,
+    checkComplete: (todayTotal, todayCount) => {
+      const hour = new Date().getHours();
+      return todayTotal <= 2000 && todayTotal > 0 && hour >= 18;
+    },
+    checkProgress: (todayTotal) => todayTotal <= 2000,
+    progressText: (todayTotal) => `${formatCurrency(todayTotal)} / $20`,
   },
   {
     id: 'under-10',
@@ -33,15 +47,22 @@ const CHALLENGE_TYPES = [
     emoji: '💪',
     description: 'Spend less than $10 today',
     difficulty: 'hard',
-    checkComplete: (todayTotal) => todayTotal <= 1000,
+    checkComplete: (todayTotal, todayCount) => {
+      const hour = new Date().getHours();
+      return todayTotal <= 1000 && todayTotal > 0 && hour >= 18;
+    },
+    checkProgress: (todayTotal) => todayTotal <= 1000,
+    progressText: (todayTotal) => `${formatCurrency(todayTotal)} / $10`,
   },
   {
     id: 'single-expense',
     name: 'One & Done',
     emoji: '☝️',
-    description: 'Only log one expense today',
+    description: 'Log exactly one expense today',
     difficulty: 'medium',
     checkComplete: (todayTotal, todayCount) => todayCount === 1,
+    checkProgress: (todayTotal, todayCount) => todayCount <= 1,
+    progressText: (todayTotal, todayCount) => `${todayCount} expense${todayCount !== 1 ? 's' : ''} logged`,
   },
   {
     id: 'beat-yesterday',
@@ -49,25 +70,56 @@ const CHALLENGE_TYPES = [
     emoji: '📈',
     description: 'Spend less than you did yesterday',
     difficulty: 'medium',
-    checkComplete: (todayTotal, todayCount, yesterdayTotal) => todayTotal < yesterdayTotal,
+    requiresYesterday: true, // Only show if there's yesterday data
+    checkComplete: (todayTotal, todayCount, yesterdayTotal) => 
+      yesterdayTotal > 0 && todayTotal < yesterdayTotal,
+    checkProgress: (todayTotal, todayCount, yesterdayTotal) => todayTotal < yesterdayTotal,
+    progressText: (todayTotal, todayCount, yesterdayTotal) => 
+      `Today: ${formatCurrency(todayTotal)} vs Yesterday: ${formatCurrency(yesterdayTotal)}`,
   },
   {
-    id: 'no-food',
+    id: 'no-food-delivery',
     name: 'Home Chef',
     emoji: '👨‍🍳',
-    description: 'No eating out today',
+    description: 'Keep food spending under $15 today',
     difficulty: 'medium',
-    checkComplete: (todayTotal, todayCount, yesterdayTotal, todayExpenses) => 
-      !todayExpenses.some(e => e.category_id === 'food'),
+    checkComplete: (todayTotal, todayCount, yesterdayTotal, todayExpenses) => {
+      const foodSpend = todayExpenses
+        .filter(e => e.category_id === 'food')
+        .reduce((sum, e) => sum + e.amount, 0);
+      const hour = new Date().getHours();
+      return foodSpend <= 1500 && hour >= 18;
+    },
+    checkProgress: (todayTotal, todayCount, yesterdayTotal, todayExpenses) => {
+      const foodSpend = todayExpenses
+        .filter(e => e.category_id === 'food')
+        .reduce((sum, e) => sum + e.amount, 0);
+      return foodSpend <= 1500;
+    },
+    progressText: (todayTotal, todayCount, yesterdayTotal, todayExpenses) => {
+      const foodSpend = todayExpenses
+        .filter(e => e.category_id === 'food')
+        .reduce((sum, e) => sum + e.amount, 0);
+      return `Food today: ${formatCurrency(foodSpend)} / $15`;
+    },
   },
   {
-    id: 'no-coffee',
-    name: 'Caffeine Detox',
-    emoji: '☕',
-    description: 'Skip the coffee shop today',
-    difficulty: 'easy',
-    checkComplete: (todayTotal, todayCount, yesterdayTotal, todayExpenses) => 
-      !todayExpenses.some(e => e.category_id === 'coffee'),
+    id: 'no-shopping',
+    name: 'Window Shopper',
+    emoji: '🪟',
+    description: 'No shopping purchases today',
+    difficulty: 'medium',
+    checkComplete: (todayTotal, todayCount, yesterdayTotal, todayExpenses) => {
+      const hasShop = todayExpenses.some(e => e.category_id === 'shopping');
+      const hour = new Date().getHours();
+      return !hasShop && hour >= 18;
+    },
+    checkProgress: (todayTotal, todayCount, yesterdayTotal, todayExpenses) => 
+      !todayExpenses.some(e => e.category_id === 'shopping'),
+    progressText: (todayTotal, todayCount, yesterdayTotal, todayExpenses) => {
+      const hasShop = todayExpenses.some(e => e.category_id === 'shopping');
+      return hasShop ? 'Shopping detected! 🛍️' : 'No shopping yet! Keep it up!';
+    },
   },
   {
     id: 'under-daily-avg',
@@ -75,8 +127,37 @@ const CHALLENGE_TYPES = [
     emoji: '📊',
     description: 'Spend less than your daily average',
     difficulty: 'medium',
+    requiresAverage: true, // Only show if there's enough history
     checkComplete: (todayTotal, todayCount, yesterdayTotal, todayExpenses, dailyAvg) => 
+      dailyAvg > 0 && todayTotal < dailyAvg && todayTotal > 0,
+    checkProgress: (todayTotal, todayCount, yesterdayTotal, todayExpenses, dailyAvg) => 
       todayTotal < dailyAvg,
+    progressText: (todayTotal, todayCount, yesterdayTotal, todayExpenses, dailyAvg) => 
+      `Today: ${formatCurrency(todayTotal)} vs Avg: ${formatCurrency(dailyAvg)}`,
+  },
+  {
+    id: 'essentials-only',
+    name: 'Essentials Only',
+    emoji: '🎯',
+    description: 'Only bills, groceries, or transport today',
+    difficulty: 'hard',
+    checkComplete: (todayTotal, todayCount, yesterdayTotal, todayExpenses) => {
+      const essentials = ['bills', 'groceries', 'transport', 'health'];
+      const allEssential = todayExpenses.every(e => essentials.includes(e.category_id));
+      const hour = new Date().getHours();
+      return allEssential && todayCount > 0 && hour >= 18;
+    },
+    checkProgress: (todayTotal, todayCount, yesterdayTotal, todayExpenses) => {
+      const essentials = ['bills', 'groceries', 'transport', 'health'];
+      return todayExpenses.every(e => essentials.includes(e.category_id));
+    },
+    progressText: (todayTotal, todayCount, yesterdayTotal, todayExpenses) => {
+      const essentials = ['bills', 'groceries', 'transport', 'health'];
+      const nonEssential = todayExpenses.filter(e => !essentials.includes(e.category_id));
+      return nonEssential.length > 0 
+        ? `${nonEssential.length} non-essential purchase${nonEssential.length > 1 ? 's' : ''}`
+        : 'All essential so far! 🎯';
+    },
   },
 ];
 
@@ -85,11 +166,16 @@ function getTodaysChallenge(dayOfYear, userData) {
   // Filter out challenges that don't make sense for the user
   const validChallenges = CHALLENGE_TYPES.filter(c => {
     // Don't show "beat yesterday" if no yesterday data
-    if (c.id === 'beat-yesterday' && !userData.yesterdayTotal) return false;
-    // Don't show "below average" if no average yet
-    if (c.id === 'under-daily-avg' && !userData.dailyAvg) return false;
+    if (c.requiresYesterday && (!userData.yesterdayTotal || userData.yesterdayTotal === 0)) return false;
+    // Don't show "below average" if no average yet (need at least 7 days of data)
+    if (c.requiresAverage && (!userData.dailyAvg || userData.dailyAvg === 0)) return false;
     return true;
   });
+  
+  if (validChallenges.length === 0) {
+    // Fallback to basic challenges if no valid ones
+    return CHALLENGE_TYPES.find(c => c.id === 'under-20');
+  }
   
   // Use day of year to pick challenge (changes daily)
   const index = dayOfYear % validChallenges.length;
