@@ -254,9 +254,14 @@ export function DashboardV2({
   const now = new Date();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const daysLeft = daysInMonth - now.getDate();
-  const dailyBudgetRemaining = settings?.monthlyBudget && daysLeft > 0 && monthTotal < settings.monthlyBudget
-    ? (settings.monthlyBudget - monthTotal) / daysLeft
-    : settings?.monthlyBudget && monthTotal >= settings.monthlyBudget ? 0 : null;
+  
+  // Calculate daily budget remaining (null if no budget, 0 if exceeded)
+  const dailyBudgetRemaining = (() => {
+    if (!settings?.monthlyBudget) return null;
+    if (monthTotal >= settings.monthlyBudget) return 0;
+    if (daysLeft <= 0) return null; // Last day of month
+    return (settings.monthlyBudget - monthTotal) / daysLeft;
+  })();
 
   // Robot greeting on mount
   useEffect(() => {

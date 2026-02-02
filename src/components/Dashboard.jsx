@@ -142,7 +142,7 @@ export function Dashboard({
   const currentDay = now.getDate();
 
   // Check if today has expenses
-  const todayStr = now.toISOString().slice(0, 10);
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const todayExpenses = expenses.filter(e => e.date?.startsWith(todayStr));
   const trackedToday = todayExpenses.length > 0;
 
