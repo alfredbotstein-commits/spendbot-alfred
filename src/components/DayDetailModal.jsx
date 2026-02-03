@@ -125,7 +125,7 @@ export function DayDetailModal({
 }) {
   if (!isOpen || !dateStr) return null;
   
-  const dayExpenses = expenses.filter(e => e.date?.startsWith(dateStr));
+  const dayExpenses = (expenses || []).filter(e => e.date?.startsWith(dateStr));
   const total = dayExpenses.reduce((sum, e) => sum + e.amount, 0);
   const level = getSpendingLevel(total, dailyBudget, avgDaily);
   const mood = getMoodForLevel(level);

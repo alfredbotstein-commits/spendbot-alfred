@@ -240,7 +240,7 @@ export function DashboardV2({
   const todayExpenses = useMemo(() => {
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    return expenses.filter(e => e.date?.startsWith(todayStr));
+    return (expenses || []).filter(e => e.date?.startsWith(todayStr));
   }, [expenses]);
 
   const todayTotal = todayExpenses.reduce((sum, e) => sum + e.amount, 0);

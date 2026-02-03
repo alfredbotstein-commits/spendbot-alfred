@@ -13,10 +13,11 @@ import { haptic } from '../utils/haptics';
 
 export function NoSpendDayBadge({ expenses, onCelebrate }) {
   const [celebrated, setCelebrated] = useState(false);
+  const safeExpenses = expenses || [];
   
   const noSpendInfo = useMemo(() => {
     const today = getLocalDateString();
-    const todayExpenses = expenses.filter(e => e.date?.startsWith(today));
+    const todayExpenses = safeExpenses.filter(e => e.date?.startsWith(today));
     const isNoSpendDay = todayExpenses.length === 0;
     
     // Check time - only count as no-spend if it's after 6 PM
@@ -30,7 +31,7 @@ export function NoSpendDayBadge({ expenses, onCelebrate }) {
     
     for (let d = new Date(monthStart); d <= now; d.setDate(d.getDate() + 1)) {
       const dateStr = getLocalDateString(new Date(d));
-      const hasExpenses = expenses.some(e => e.date?.startsWith(dateStr));
+      const hasExpenses = safeExpenses.some(e => e.date?.startsWith(dateStr));
       if (!hasExpenses) {
         daysInMonth.add(dateStr);
       }
@@ -42,7 +43,7 @@ export function NoSpendDayBadge({ expenses, onCelebrate }) {
     
     while (true) {
       const dateStr = getLocalDateString(checkDate);
-      const dayExpenses = expenses.filter(e => e.date?.startsWith(dateStr));
+      const dayExpenses = safeExpenses.filter(e => e.date?.startsWith(dateStr));
       
       if (dayExpenses.length === 0) {
         streak++;
@@ -61,7 +62,7 @@ export function NoSpendDayBadge({ expenses, onCelebrate }) {
       noSpendDaysThisMonth: daysInMonth.size,
       streak: isNoSpendDay ? streak : 0,
     };
-  }, [expenses]);
+  }, [safeExpenses]);
   
   // Celebrate when conditions are met
   useEffect(() => {
