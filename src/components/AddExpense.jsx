@@ -108,28 +108,18 @@ export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] 
           {success ? (
             <motion.div
               key="success"
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               className="text-center"
             >
-              <RobotBuddy 
-                mood={robotMood}
-                size="xl"
-                message={robotReaction}
-                showMessage={true}
-                animate={true}
-              />
-              {/* Show what else you could've bought (for fun shaming) */}
-              {showAlternative && savedAmount >= 50 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="mt-4"
-                >
-                  <AlternativeSpendingBadge amount={savedAmount} />
-                </motion.div>
-              )}
+              {/* Clean success confirmation */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-success text-2xl font-semibold"
+              >
+                Expense saved ✓
+              </motion.div>
             </motion.div>
           ) : (
             <motion.div
@@ -203,21 +193,8 @@ export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] 
         <NumberPad onInput={handleInput} onDelete={handleDelete} />
       )}
 
-      {/* Success Message + Save Button */}
+      {/* Save Button */}
       <div className="px-6 pb-8">
-        <AnimatePresence>
-          {success && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="text-center mb-4 text-success font-semibold text-lg"
-            >
-              Expense saved ✓
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
         {!success && (
           <motion.button
             onClick={handleSave}
