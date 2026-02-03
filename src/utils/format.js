@@ -33,9 +33,9 @@ export function formatTime(date) {
   });
 }
 
-// Get current month name
+// Get current full date (e.g., "February 3, 2026")
 export function getCurrentMonthName() {
-  return new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  return new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }
 
 // Group expenses by date
