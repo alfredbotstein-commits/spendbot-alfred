@@ -346,8 +346,8 @@ export function getRobotMood({
     return 'cool';
   }
   
-  // Recent big expense
-  if (lastExpenseAmount && lastExpenseAmount >= 100) {
+  // Recent big expense ($100+ = 10000 cents)
+  if (lastExpenseAmount && lastExpenseAmount >= 10000) {
     return 'surprised';
   }
   
@@ -490,12 +490,12 @@ export function useRobotBuddy({ expenses, settings, monthTotal }) {
     return newMessage;
   };
 
-  // Determine message category based on expense amount
+  // Determine message category based on expense amount (in cents)
   const getExpenseReaction = (amount) => {
-    if (amount < 10) return 'smallExpense';
-    if (amount < 50) return 'mediumExpense';
-    if (amount < 200) return 'largeExpense';
-    return 'hugeExpense';
+    if (amount < 1000) return 'smallExpense';    // < $10
+    if (amount < 5000) return 'mediumExpense';   // < $50
+    if (amount < 20000) return 'largeExpense';   // < $200
+    return 'hugeExpense';                         // $200+
   };
 
   return {
