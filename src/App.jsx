@@ -127,11 +127,12 @@ function AppContent() {
   };
 
   const handleSave = async (amount, categoryId) => {
-    const result = await addExpense(amount, categoryId);
+    const result = await addExpense({ amount, categoryId });
     if (result.limitReached) {
       setShowPaywall(true);
     }
-    return result;
+    // AddExpense expects result.success, so add it
+    return { ...result, success: !result.error && !result.limitReached };
   };
 
   const handleUpgrade = () => {
