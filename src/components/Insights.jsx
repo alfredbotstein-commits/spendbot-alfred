@@ -27,7 +27,7 @@ function getInsights(expenses, categories, monthTotal, streakInfo) {
   // Category analysis
   const categoryTotals = {};
   expenses.forEach(e => {
-    categoryTotals[e.categoryId] = (categoryTotals[e.categoryId] || 0) + e.amount;
+    categoryTotals[e.category_id] = (categoryTotals[e.category_id] || 0) + e.amount;
   });
   
   const sortedCategories = Object.entries(categoryTotals)
