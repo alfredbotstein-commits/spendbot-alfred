@@ -50,6 +50,7 @@ function AppContent() {
     settings,
     loading: settingsLoading,
     updateSettings,
+    updateStreak,
   } = useSupabaseSettings();
 
   // Initialize audio on first interaction
@@ -130,6 +131,10 @@ function AppContent() {
     const result = await addExpense({ amount, categoryId });
     if (result.limitReached) {
       setShowPaywall(true);
+    }
+    // Update streak on successful expense
+    if (!result.error && !result.limitReached) {
+      updateStreak();
     }
     // AddExpense expects result.success, so add it
     return { ...result, success: !result.error && !result.limitReached };
