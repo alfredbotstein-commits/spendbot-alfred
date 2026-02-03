@@ -192,12 +192,29 @@ export function getTodaysFortune() {
 export function FinancialFortuneCard({ onDismiss }) {
   const [fortune, setFortune] = useState(null);
   const [revealed, setRevealed] = useState(false);
+  const [minimized, setMinimized] = useState(false);
 
   useEffect(() => {
     setFortune(getTodaysFortune());
   }, []);
 
   if (!fortune) return null;
+
+  // Minimized state - compact view
+  if (minimized) {
+    return (
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        onClick={() => setMinimized(false)}
+        className="w-full bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-2xl p-3 mb-4 flex items-center gap-3"
+      >
+        <span className="text-xl">{fortune.emoji}</span>
+        <span className="text-sm text-purple-300 truncate flex-1 text-left">Today's Fortune</span>
+        <span className="text-xs text-text-muted">Tap to expand</span>
+      </motion.button>
+    );
+  }
 
   return (
     <motion.div
@@ -211,7 +228,17 @@ export function FinancialFortuneCard({ onDismiss }) {
           <span className="text-xl">🔮</span>
           <span className="text-sm font-medium text-purple-300">Daily Financial Fortune</span>
         </div>
-        <span className="text-xs text-text-muted">{fortune.date}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-text-muted">{fortune.date}</span>
+          {revealed && (
+            <button
+              onClick={() => setMinimized(true)}
+              className="text-text-muted hover:text-text-secondary text-sm"
+            >
+              ▲
+            </button>
+          )}
+        </div>
       </div>
 
       {!revealed ? (

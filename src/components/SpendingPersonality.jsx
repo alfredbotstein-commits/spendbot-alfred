@@ -221,11 +221,12 @@ export function analyzeSpendingPersonality(expenses, settings = {}) {
 // Personality Card Component
 export function SpendingPersonalityCard({ expenses, settings, onClose }) {
   const [revealed, setRevealed] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const personality = useMemo(() => analyzeSpendingPersonality(expenses, settings), [expenses, settings]);
 
   if (!personality) {
     return (
-      <div className="bg-surface-raised rounded-2xl p-6 text-center">
+      <div className="bg-surface-raised rounded-2xl p-6 text-center mb-4">
         <span className="text-4xl mb-3 block">🔍</span>
         <p className="text-text-secondary">
           Track at least 5 expenses to unlock your Spending Personality!
@@ -237,17 +238,46 @@ export function SpendingPersonalityCard({ expenses, settings, onClose }) {
     );
   }
 
+  // Minimized state - compact view
+  if (minimized) {
+    return (
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        onClick={() => setMinimized(false)}
+        className={`w-full bg-gradient-to-br ${personality.color} border ${personality.borderColor} rounded-2xl p-3 mb-4 flex items-center gap-3`}
+      >
+        <span className="text-2xl">{personality.emoji}</span>
+        <div className="flex-1 text-left">
+          <span className="text-sm font-medium text-text-primary">{personality.title}</span>
+          <span className="text-xs text-text-muted ml-2">• {personality.vibe}</span>
+        </div>
+        <span className="text-xs text-text-muted">Tap to expand</span>
+      </motion.button>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-gradient-to-br ${personality.color} border ${personality.borderColor} rounded-2xl p-6`}
+      className={`bg-gradient-to-br ${personality.color} border ${personality.borderColor} rounded-2xl p-6 mb-4`}
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-medium text-text-muted">Your Spending Personality</h3>
-        {onClose && (
-          <button onClick={onClose} className="text-text-muted hover:text-text-secondary">✕</button>
-        )}
+        <div className="flex items-center gap-2">
+          {revealed && (
+            <button 
+              onClick={() => setMinimized(true)} 
+              className="text-text-muted hover:text-text-secondary text-sm"
+            >
+              ▲
+            </button>
+          )}
+          {onClose && (
+            <button onClick={onClose} className="text-text-muted hover:text-text-secondary">✕</button>
+          )}
+        </div>
       </div>
 
       {!revealed ? (
