@@ -347,6 +347,7 @@ export function History({ expenses, categories, onDelete, onBack }) {
   
   // Filter expenses
   const filteredExpenses = useMemo(() => {
+    if (!expenses) return [];
     const { start, end } = getDateRange(dateRange, customDate);
     
     return expenses.filter(e => {

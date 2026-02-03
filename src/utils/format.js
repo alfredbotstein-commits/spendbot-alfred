@@ -1,5 +1,8 @@
 // Format cents to currency string
 export function formatCurrency(cents, currency = 'USD') {
+  if (cents === null || cents === undefined || isNaN(cents)) {
+    return '$0.00';
+  }
   const amount = cents / 100;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -40,6 +43,7 @@ export function getCurrentMonthName() {
 
 // Group expenses by date
 export function groupExpensesByDate(expenses) {
+  if (!expenses || expenses.length === 0) return [];
   const groups = {};
   expenses.forEach(expense => {
     const dateKey = new Date(expense.date).toDateString();
