@@ -164,7 +164,7 @@ function CategoryPill({ category, total, percentage, maxTotal }) {
 
 // Recent expense item
 function ExpenseItem({ expense, category }) {
-  const time = new Date(expense.date);
+  const time = new Date(expense.date || expense.created_at || Date.now());
   const isToday = time.toDateString() === new Date().toDateString();
   const timeStr = isToday 
     ? time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
