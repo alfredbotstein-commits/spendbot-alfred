@@ -1,9 +1,17 @@
 import { motion } from 'framer-motion';
-import { formatCurrency } from '../utils/format';
 
 /**
  * Individual day cell in the calendar grid
  */
+
+// Format cents to compact dollars (e.g., 62400 → "$624", 150000 → "$1.5k")
+function formatCompactDollars(cents) {
+  const dollars = cents / 100;
+  if (dollars >= 1000) {
+    return `$${(dollars / 1000).toFixed(1)}k`;
+  }
+  return `$${Math.round(dollars)}`;
+}
 
 // Color mapping based on spending intensity
 const COLORS = {
@@ -87,7 +95,7 @@ export function CalendarDay({
       {/* Total amount (if any) */}
       {total > 0 && isCurrentMonth && (
         <span className={`text-[10px] font-medium ${textColorClass}`}>
-          ${Math.round(total)}
+          {formatCompactDollars(total)}
         </span>
       )}
       
