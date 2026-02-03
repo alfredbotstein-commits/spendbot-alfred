@@ -5,7 +5,7 @@ import { formatCurrency } from '../utils/format';
 function getInsights(expenses, categories, monthTotal, streakInfo) {
   const insights = [];
   
-  if (expenses.length === 0) {
+  if (!expenses || expenses.length === 0) {
     return [{ emoji: '👋', text: 'Add your first expense to get personalized insights!' }];
   }
 
