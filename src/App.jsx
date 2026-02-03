@@ -67,12 +67,18 @@ function AppContent() {
     };
   }, []);
 
-  // Check if user needs onboarding
+  // Check if user needs onboarding - only after settings have loaded
   useEffect(() => {
+    // Don't check until settings have loaded
+    if (settingsLoading) return;
+    
     if (user && !settings?.onboardingComplete) {
       setShowOnboarding(true);
+    } else {
+      // Reset if user already completed onboarding
+      setShowOnboarding(false);
     }
-  }, [user, settings?.onboardingComplete]);
+  }, [user, settings?.onboardingComplete, settingsLoading]);
 
   // Loading state - with fun messages!
   if (authLoading) {
