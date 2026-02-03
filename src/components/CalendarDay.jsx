@@ -99,30 +99,6 @@ export function CalendarDay({
         </span>
       )}
       
-      {/* Zero day sparkle */}
-      {total === 0 && isCurrentMonth && !isFuture && (
-        <span className="text-[10px]">✨</span>
-      )}
-      
-      {/* Transaction dots (max 3) */}
-      {transactionCount > 0 && isCurrentMonth && (
-        <div className="flex gap-0.5 absolute bottom-1">
-          {Array.from({ length: Math.min(transactionCount, 3) }).map((_, i) => (
-            <div
-              key={i}
-              className={`w-1 h-1 rounded-full ${
-                level === 'zero' || level === 'low' ? 'bg-emerald-400' :
-                level === 'medium' ? 'bg-yellow-400' :
-                level === 'high' ? 'bg-orange-400' : 'bg-red-400'
-              }`}
-            />
-          ))}
-          {transactionCount > 3 && (
-            <span className="text-[8px] text-text-muted">+</span>
-          )}
-        </div>
-      )}
-      
       {/* Today indicator */}
       {isToday && (
         <motion.div
