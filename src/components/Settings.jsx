@@ -62,7 +62,8 @@ function ConfirmModal({ show, title, message, confirmText, onConfirm, onCancel, 
 }
 
 export function Settings({ settings, categories, onUpdate, onExport, onClearAll, onBack, user, profile }) {
-  const [budget, setBudget] = useState(settings?.monthlyBudget || '');
+  // monthlyBudget is stored in cents, display in dollars
+  const [budget, setBudget] = useState(settings?.monthlyBudget ? (settings.monthlyBudget / 100).toString() : '');
   const [showBudgetInput, setShowBudgetInput] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
@@ -73,7 +74,8 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
   const handleBudgetSave = () => {
     const value = parseFloat(budget);
     if (!isNaN(value) && value > 0) {
-      onUpdate({ monthlyBudget: value });
+      // Convert dollars to cents for storage
+      onUpdate({ monthlyBudget: Math.round(value * 100) });
     } else if (budget === '' || budget === '0') {
       onUpdate({ monthlyBudget: null });
     }

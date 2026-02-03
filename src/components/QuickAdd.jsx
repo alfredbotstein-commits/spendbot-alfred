@@ -75,7 +75,7 @@ export function QuickAdd({ expenses, categories, onQuickAdd, onClose }) {
           {lastExpense && (
             <motion.button
               whileTap={{ scale: 0.95 }}
-              onClick={() => onQuickAdd(lastExpense.amount, lastExpense.category_id)}
+              onClick={() => onQuickAdd({ amount: lastExpense.amount, categoryId: lastExpense.category_id })}
               className="flex items-center gap-2 px-3 py-2 bg-accent/10 border border-accent/30 
                          rounded-xl text-sm hover:bg-accent/20 transition-colors"
             >
@@ -93,7 +93,7 @@ export function QuickAdd({ expenses, categories, onQuickAdd, onClose }) {
               <motion.button
                 key={i}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => onQuickAdd(s.amount, s.categoryId)}
+                onClick={() => onQuickAdd({ amount: s.amount, categoryId: s.categoryId })}
                 className="flex items-center gap-2 px-3 py-2 bg-surface rounded-xl 
                            text-sm hover:bg-border transition-colors"
               >
