@@ -45,10 +45,15 @@ export function AuthScreen({ onBack }) {
     setMessage(null);
 
     if (view === 'email-signup') {
-      const { error } = await signUpWithEmail(email, password);
+      const { data, error } = await signUpWithEmail(email, password);
       if (error) {
         setError(error.message);
-      } else {
+      } else if (data?.session) {
+        // User is signed in immediately (email confirmation disabled)
+        // Auth state change will handle redirect to dashboard
+        return;
+      } else if (data?.user && !data?.session) {
+        // Email confirmation required
         setMessage('Check your email for the confirmation link!');
       }
     } else {
