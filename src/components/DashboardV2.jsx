@@ -542,21 +542,24 @@ export function DashboardV2({
         </GlassCard>
       </div>
 
-      {/* FAB */}
-      <motion.button
-        onClick={onAddClick}
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-16 h-16 
-                   bg-gradient-to-br from-accent to-purple-600 rounded-full 
-                   flex items-center justify-center text-3xl text-white
-                   shadow-[0_0_30px_rgba(99,102,241,0.5)]"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.5, type: 'spring' }}
-      >
-        +
-      </motion.button>
+      {/* FAB - Centered with safe area support */}
+      <div className="fixed bottom-0 left-0 right-0 pb-8 flex justify-center pointer-events-none"
+           style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 2rem))' }}>
+        <motion.button
+          onClick={onAddClick}
+          className="w-16 h-16 pointer-events-auto
+                     bg-gradient-to-br from-accent to-purple-600 rounded-full 
+                     flex items-center justify-center text-3xl text-white
+                     shadow-[0_0_30px_rgba(99,102,241,0.5)]"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5, type: 'spring' }}
+        >
+          +
+        </motion.button>
+      </div>
 
       {/* Achievements Modal */}
       <AnimatePresence>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../utils/format';
 import { signOut } from '../lib/supabase';
+import { Toast } from './Toast';
 
 function SettingRow({ label, description, children }) {
   return (
@@ -67,6 +68,7 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [showExportSuccess, setShowExportSuccess] = useState(false);
 
   const handleBudgetSave = () => {
     const value = parseFloat(budget);
@@ -107,6 +109,10 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
       a.download = `spendbot-export-${new Date().toISOString().split('T')[0]}.csv`;
       a.click();
       URL.revokeObjectURL(url);
+      
+      // Show success toast
+      setShowExportSuccess(true);
+      setTimeout(() => setShowExportSuccess(false), 3000);
     } finally {
       setExporting(false);
     }
@@ -306,6 +312,12 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
         danger={false}
         onConfirm={handleSignOut}
         onCancel={() => setShowSignOutConfirm(false)}
+      />
+
+      {/* Export Success Toast */}
+      <Toast
+        show={showExportSuccess}
+        message="✅ Export complete! Check your downloads."
       />
     </motion.div>
   );
