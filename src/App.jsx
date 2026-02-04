@@ -10,6 +10,7 @@ import { History } from './components/History';
 import { Settings } from './components/Settings';
 import { Onboarding } from './components/Onboarding';
 import { Paywall } from './components/Paywall';
+import { PremiumSuccess } from './components/PremiumSuccess';
 import { InstallBanner } from './components/InstallBanner';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { TermsPage } from './pages/TermsPage';
@@ -265,6 +266,13 @@ function App() {
         {/* Public pages - accessible without auth */}
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
+        
+        {/* Premium success page - needs AuthProvider for user context */}
+        <Route path="/success" element={
+          <AuthProvider>
+            <PremiumSuccess />
+          </AuthProvider>
+        } />
         
         {/* Main app - wrapped in AuthProvider */}
         <Route path="/*" element={
