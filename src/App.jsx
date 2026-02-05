@@ -285,13 +285,11 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
-        {/* Visual QA Test Page - temporarily enabled for QA */}
+        {/* Visual QA Test Page - no AuthProvider needed, has own mock */}
         <Route path="/test" element={
-          <AuthProvider>
-            <Suspense fallback={<RouteFallback />}>
-              <TestPage />
-            </Suspense>
-          </AuthProvider>
+          <Suspense fallback={<RouteFallback />}>
+            <TestPage />
+          </Suspense>
         } />
         
         {/* Public pages - accessible without auth */}
