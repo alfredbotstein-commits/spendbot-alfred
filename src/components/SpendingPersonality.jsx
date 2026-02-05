@@ -274,7 +274,7 @@ export function SpendingPersonalityCard({ expenses, settings, onClose }) {
             </button>
           )}
           {onClose && (
-            <button onClick={onClose} className="text-text-muted hover:text-text-secondary">✕</button>
+            <button onClick={onClose} className="text-text-muted hover:text-text-secondary" aria-label="Close">✕</button>
           )}
         </div>
       </div>
