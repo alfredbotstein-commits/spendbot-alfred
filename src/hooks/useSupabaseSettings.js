@@ -28,13 +28,17 @@ export function useSupabaseSettings() {
     }
 
     // Helper function to create default settings (inlined to avoid stale closure)
+    // Uses upsert to avoid race condition conflicts (409 errors)
     const createDefaults = async () => {
       try {
         const { data, error } = await supabase
           .from('user_settings')
-          .insert({
+          .upsert({
             user_id: user.id,
             ...DEFAULT_SETTINGS,
+          }, {
+            onConflict: 'user_id',
+            ignoreDuplicates: false,
           })
           .select()
           .single();
@@ -52,10 +56,9 @@ export function useSupabaseSettings() {
         .from('user_settings')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle(); // Use maybeSingle() to avoid 406 when no rows
 
-      if (error && error.code !== 'PGRST116') {
-        // PGRST116 = no rows found, which is fine
+      if (error) {
         console.error('Error fetching settings:', error);
       }
 

@@ -92,7 +92,7 @@ export function TermsPage() {
               <div>
                 <h3 className="font-medium text-text-primary mb-1">Premium (Lifetime)</h3>
                 <p className="text-text-secondary text-sm">
-                  One-time payment of $9.99 for unlimited expenses and all premium features. 
+                  One-time payment of $4.99 for unlimited expenses and all premium features. 
                   No recurring charges, no subscriptions.
                 </p>
               </div>
