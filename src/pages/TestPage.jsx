@@ -112,48 +112,50 @@ export function TestPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Test Navigation Bar */}
-      <div className="fixed top-0 left-0 right-0 z-[100] bg-black/90 backdrop-blur-sm p-2 flex flex-wrap gap-1 text-xs">
-        {['dashboard', 'history', 'settings', 'onboarding', 'paywall', 'success'].map(screen => (
+    <AuthContext.Provider value={MOCK_AUTH_VALUE}>
+      <div className="min-h-screen bg-background">
+        {/* Test Navigation Bar */}
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-black/90 backdrop-blur-sm p-2 flex flex-wrap gap-1 text-xs">
+          {['dashboard', 'history', 'settings', 'onboarding', 'paywall', 'success'].map(screen => (
+            <button
+              key={screen}
+              onClick={() => setCurrentScreen(screen)}
+              className={`px-2 py-1 rounded ${
+                currentScreen === screen ? 'bg-accent text-white' : 'bg-surface-raised text-text-secondary'
+              }`}
+            >
+              {screen}
+            </button>
+          ))}
           <button
-            key={screen}
-            onClick={() => setCurrentScreen(screen)}
-            className={`px-2 py-1 rounded ${
-              currentScreen === screen ? 'bg-accent text-white' : 'bg-surface-raised text-text-secondary'
-            }`}
+            onClick={() => setShowAdd(true)}
+            className="px-2 py-1 rounded bg-green-600 text-white"
           >
-            {screen}
+            + Add Expense
           </button>
-        ))}
-        <button
-          onClick={() => setShowAdd(true)}
-          className="px-2 py-1 rounded bg-green-600 text-white"
-        >
-          + Add Expense
-        </button>
-      </div>
+        </div>
 
-      {/* Add padding to account for nav bar */}
-      <div className="pt-12">
-        <AnimatePresence mode="wait">
-          {renderScreen()}
+        {/* Add padding to account for nav bar */}
+        <div className="pt-12">
+          <AnimatePresence mode="wait">
+            {renderScreen()}
+          </AnimatePresence>
+        </div>
+
+        <AnimatePresence>
+          {showAdd && (
+            <AddExpense
+              categories={DEFAULT_CATEGORIES}
+              expenses={MOCK_EXPENSES}
+              onSave={async () => {
+                setShowAdd(false);
+                return { success: true };
+              }}
+              onClose={() => setShowAdd(false)}
+            />
+          )}
         </AnimatePresence>
       </div>
-
-      <AnimatePresence>
-        {showAdd && (
-          <AddExpense
-            categories={DEFAULT_CATEGORIES}
-            expenses={MOCK_EXPENSES}
-            onSave={async () => {
-              setShowAdd(false);
-              return { success: true };
-            }}
-            onClose={() => setShowAdd(false)}
-          />
-        )}
-      </AnimatePresence>
-    </div>
+    </AuthContext.Provider>
   );
 }
