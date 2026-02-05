@@ -9,6 +9,14 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Detect if we're returning from an OAuth callback
+    // Supabase uses hash fragments (#access_token=...) or query params (?code=...)
+    const hash = window.location.hash;
+    const search = window.location.search;
+    const isOAuthCallback = hash.includes('access_token') || 
+                            hash.includes('refresh_token') ||
+                            search.includes('code=');
+
     // Timeout to prevent infinite loading if Supabase fails
     const timeout = setTimeout(() => {
       if (loading) {
@@ -17,10 +25,47 @@ export function AuthProvider({ children }) {
       }
     }, 5000);
 
-    // Get initial session - with refresh attempt for stale sessions
+    // Listen for auth changes FIRST - this will catch the OAuth callback session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state change:', event, !!session);
+        
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        } else {
+          setProfile(null);
+          // Only set loading false if NOT an OAuth callback
+          // (OAuth callback will fire SIGNED_IN event with session)
+          if (!isOAuthCallback) {
+            setLoading(false);
+          }
+        }
+
+        // Handle sign-in event - create profile if needed
+        if (event === 'SIGNED_IN' && session?.user) {
+          await ensureProfile(session.user);
+          // Clear the URL hash after successful OAuth to clean up the URL
+          if (isOAuthCallback && window.history.replaceState) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }
+        
+        // If we got INITIAL_SESSION event with no session and it's an OAuth callback,
+        // don't set loading false yet - wait for SIGNED_IN
+        if (event === 'INITIAL_SESSION' && !session && isOAuthCallback) {
+          console.log('OAuth callback detected, waiting for session...');
+          // Don't set loading to false - wait for SIGNED_IN event
+          return;
+        }
+      }
+    );
+
+    // Get initial session - but for OAuth callbacks, let onAuthStateChange handle it
     const initSession = async () => {
       try {
-        // First try to get existing session
+        // This triggers Supabase to parse the URL and fire onAuthStateChange
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -36,11 +81,15 @@ export function AuthProvider({ children }) {
           return;
         }
         
-        if (session?.user) {
-          setUser(session.user);
-          await fetchProfile(session.user.id);
-        } else {
-          setLoading(false);
+        // For OAuth callbacks, onAuthStateChange will handle the session
+        // Only set state here for non-OAuth flows
+        if (!isOAuthCallback) {
+          if (session?.user) {
+            setUser(session.user);
+            await fetchProfile(session.user.id);
+          } else {
+            setLoading(false);
+          }
         }
       } catch (error) {
         console.error('Auth session error:', error);
@@ -49,25 +98,6 @@ export function AuthProvider({ children }) {
     };
 
     initSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-          setLoading(false);
-        }
-
-        // Handle sign-in event - create profile if needed
-        if (event === 'SIGNED_IN' && session?.user) {
-          await ensureProfile(session.user);
-        }
-      }
-    );
 
     // Cleanup both timeout and subscription
     return () => {
