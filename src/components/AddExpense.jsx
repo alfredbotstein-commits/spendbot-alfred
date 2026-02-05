@@ -4,45 +4,16 @@ import { NumberPad } from './NumberPad';
 import { CategorySelector } from './CategorySelector';
 import { Confetti } from './Confetti';
 import { formatCurrency } from '../utils/format';
-import { RobotBuddy, getRandomMessage, getCategoryPun } from './RobotBuddy';
 import { QuickAdd } from './QuickAdd';
-import { getSpendingRoast, AlternativeSpendingBadge } from './SpendingRoasts';
 
-export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] }) {
+export function AddExpense({ categories, onSave, onClose, expenses = [] }) {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(null);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [robotReaction, setRobotReaction] = useState(null);
-  const [robotMood, setRobotMood] = useState('happy');
-  const [showAlternative, setShowAlternative] = useState(false);
-  const [savedAmount, setSavedAmount] = useState(0);
 
   const amountCents = Math.round(parseFloat(amount || '0') * 100);
-  const amountDollars = amountCents / 100;
   const isValid = amountCents > 0 && category !== null;
-
-  // Get robot reaction based on amount and category
-  const getRobotReaction = (dollars, categoryName = null) => {
-    // For larger amounts, use the roast system (50% chance)
-    if (dollars >= 20 && Math.random() < 0.5) {
-      const roast = getSpendingRoast(dollars * 100, categoryName); // Convert to cents
-      if (roast) {
-        const mood = dollars >= 100 ? 'worried' : dollars >= 50 ? 'surprised' : 'happy';
-        return { mood, message: roast, showAlternative: dollars >= 50 };
-      }
-    }
-    
-    // 30% chance to use category pun if category is known
-    if (categoryName && Math.random() < 0.3) {
-      return { mood: 'happy', message: getCategoryPun(categoryName) };
-    }
-    
-    if (dollars < 10) return { mood: 'happy', type: 'smallExpense' };
-    if (dollars < 50) return { mood: 'happy', type: 'mediumExpense' };
-    if (dollars < 200) return { mood: 'surprised', type: 'largeExpense' };
-    return { mood: 'worried', type: 'hugeExpense' };
-  };
 
   const handleInput = (value) => {
     if (value === '.' && amount.includes('.')) return;
@@ -65,12 +36,6 @@ export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] 
     const result = await onSave(amountCents, category.id);
     
     if (result.success) {
-      // Get robot reaction based on amount and category
-      const reaction = getRobotReaction(amountDollars, category?.name);
-      setRobotMood(reaction.mood);
-      setRobotReaction(reaction.message || getRandomMessage(reaction.type));
-      setSavedAmount(amountDollars);
-      setShowAlternative(reaction.showAlternative || false);
       setSuccess(true);
       
       // Wait 800ms then close
@@ -164,9 +129,6 @@ export function AddExpense({ categories, onSave, onClose, canAdd, expenses = [] 
               if (result.success) {
                 const cat = categories.find(c => c.id === categoryId);
                 setCategory(cat);
-                const reaction = getRobotReaction(amount / 100);
-                setRobotMood(reaction.mood);
-                setRobotReaction(getRandomMessage(reaction.type));
                 setSuccess(true);
                 setTimeout(() => onClose(), 800);
               } else {

@@ -54,7 +54,7 @@ export function CalendarDay({
   isFuture,
   isSelected,
   total,
-  transactionCount,
+  transactionCount: _transactionCount,
   dailyBudget,
   avgDaily,
   onSelect,

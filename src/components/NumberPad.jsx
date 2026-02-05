@@ -18,7 +18,7 @@ export function NumberPad({ onInput, onDelete }) {
 
   return (
     <div className="grid grid-cols-3 gap-3 px-6 pb-4">
-      {buttons.flat().map((btn, i) => (
+      {buttons.flat().map((btn) => (
         <motion.button
           key={btn}
           whileTap={{ scale: 0.95 }}

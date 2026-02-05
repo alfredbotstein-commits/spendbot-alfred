@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { getLocalDateString } from '../utils/dateUtils';
 import { playSound } from '../utils/sounds';
 import { haptic } from '../utils/haptics';
@@ -13,9 +13,9 @@ import { haptic } from '../utils/haptics';
 
 export function NoSpendDayBadge({ expenses, onCelebrate }) {
   const [celebrated, setCelebrated] = useState(false);
-  const safeExpenses = expenses || [];
   
   const noSpendInfo = useMemo(() => {
+    const safeExpenses = expenses || [];
     const today = getLocalDateString();
     const todayExpenses = safeExpenses.filter(e => e.date?.startsWith(today));
     const isNoSpendDay = todayExpenses.length === 0;
@@ -62,15 +62,19 @@ export function NoSpendDayBadge({ expenses, onCelebrate }) {
       noSpendDaysThisMonth: daysInMonth.size,
       streak: isNoSpendDay ? streak : 0,
     };
-  }, [safeExpenses]);
+  }, [expenses]);
   
-  // Celebrate when conditions are met
+  // Celebrate when conditions are met - use callback to avoid sync setState in effect
   useEffect(() => {
     if (noSpendInfo.isNoSpendDay && noSpendInfo.canCelebrate && !celebrated) {
-      setCelebrated(true);
-      playSound('achievement');
-      haptic('success');
-      onCelebrate?.();
+      // Schedule state update after effect completes
+      const frameId = requestAnimationFrame(() => {
+        setCelebrated(true);
+        playSound('achievement');
+        haptic('success');
+        onCelebrate?.();
+      });
+      return () => cancelAnimationFrame(frameId);
     }
   }, [noSpendInfo, celebrated, onCelebrate]);
   
@@ -144,7 +148,25 @@ export function NoSpendDayBadge({ expenses, onCelebrate }) {
 /**
  * NoSpendCelebrationModal - Full screen celebration
  */
+const CONFETTI_COLORS = ['#10B981', '#34D399', '#6EE7B7', '#FBBF24', '#F472B6'];
+
+// Pre-generate particle data to avoid Math.random in render
+function generateParticles(count) {
+  return Array.from({ length: count }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    color: CONFETTI_COLORS[i % 5],
+    rotate: Math.random() * 720 - 360,
+    x: Math.random() * 100 - 50,
+    duration: Math.random() * 2 + 2,
+    delay: Math.random() * 0.5,
+  }));
+}
+
 export function NoSpendCelebrationModal({ onClose }) {
+  // Generate particles once on mount
+  const particles = useMemo(() => generateParticles(50), []);
+  
   useEffect(() => {
     playSound('achievement');
     haptic('achievement');
@@ -160,23 +182,23 @@ export function NoSpendCelebrationModal({ onClose }) {
     >
       {/* Confetti particles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {[...Array(50)].map((_, i) => (
+        {particles.map((p) => (
           <motion.div
-            key={i}
+            key={p.id}
             className="absolute w-3 h-3 rounded-sm"
             style={{
-              left: `${Math.random() * 100}%`,
-              backgroundColor: ['#10B981', '#34D399', '#6EE7B7', '#FBBF24', '#F472B6'][i % 5],
+              left: `${p.left}%`,
+              backgroundColor: p.color,
             }}
             initial={{ y: -20, rotate: 0 }}
             animate={{
               y: window.innerHeight + 20,
-              rotate: Math.random() * 720 - 360,
-              x: Math.random() * 100 - 50,
+              rotate: p.rotate,
+              x: p.x,
             }}
             transition={{
-              duration: Math.random() * 2 + 2,
-              delay: Math.random() * 0.5,
+              duration: p.duration,
+              delay: p.delay,
               ease: 'easeIn',
             }}
           />

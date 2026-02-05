@@ -17,7 +17,8 @@ const KONAMI_CODE = [
 ];
 
 // Secret swipe pattern (for mobile): up up down down left right left right
-const SWIPE_PATTERN = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right'];
+// Note: Not yet implemented, keeping for future mobile gesture support
+const _SWIPE_PATTERN = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right'];
 
 // Hook to detect Konami code
 export function useKonamiCode(callback) {

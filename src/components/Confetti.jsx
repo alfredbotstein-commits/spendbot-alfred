@@ -1,19 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const COLORS = ['#6366F1', '#A855F7', '#EC4899', '#F97316', '#22C55E', '#3B82F6'];
 const EMOJIS = ['💰', '✨', '🎉', '💸', '🤑', '⭐'];
 
-function Particle({ x, emoji, delay, color }) {
-  const endX = x + (Math.random() - 0.5) * 200;
-  const endY = -window.innerHeight - 100;
-  const rotation = Math.random() * 720 - 360;
-  
+// Pre-calculated animation values are passed as props to avoid impure render
+function Particle({ x, startY, endX, endY, rotation, duration, emoji, delay, color }) {
   return (
     <motion.div
       initial={{ 
         x, 
-        y: window.innerHeight / 2,
+        y: startY,
         opacity: 1,
         scale: 0,
         rotate: 0
@@ -26,7 +23,7 @@ function Particle({ x, emoji, delay, color }) {
         rotate: rotation
       }}
       transition={{ 
-        duration: 1.5 + Math.random() * 0.5,
+        duration,
         delay: delay,
         ease: [0.25, 0.46, 0.45, 0.94]
       }}
@@ -38,30 +35,58 @@ function Particle({ x, emoji, delay, color }) {
   );
 }
 
+// Generate particles outside of component to avoid impure render
+function generateParticles(emoji) {
+  const particles = [];
+  const centerX = typeof window !== 'undefined' ? window.innerWidth / 2 : 200;
+  const startY = typeof window !== 'undefined' ? window.innerHeight / 2 : 400;
+  const endY = typeof window !== 'undefined' ? -window.innerHeight - 100 : -500;
+  
+  for (let i = 0; i < 20; i++) {
+    const x = centerX + (Math.random() - 0.5) * 100;
+    particles.push({
+      id: i,
+      x,
+      startY,
+      endX: x + (Math.random() - 0.5) * 200,
+      endY,
+      rotation: Math.random() * 720 - 360,
+      duration: 1.5 + Math.random() * 0.5,
+      emoji: i < 5 ? emoji : (Math.random() > 0.5 ? EMOJIS[Math.floor(Math.random() * EMOJIS.length)] : null),
+      delay: Math.random() * 0.2,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)]
+    });
+  }
+  return particles;
+}
+
 export function Confetti({ show, emoji }) {
   const [particles, setParticles] = useState([]);
+  const hasTriggered = useRef(false);
   
   useEffect(() => {
-    if (show) {
-      const newParticles = [];
-      const centerX = window.innerWidth / 2;
+    if (show && !hasTriggered.current) {
+      hasTriggered.current = true;
       
-      // Create burst of particles
-      for (let i = 0; i < 20; i++) {
-        newParticles.push({
-          id: i,
-          x: centerX + (Math.random() - 0.5) * 100,
-          emoji: i < 5 ? emoji : (Math.random() > 0.5 ? EMOJIS[Math.floor(Math.random() * EMOJIS.length)] : null),
-          delay: Math.random() * 0.2,
-          color: COLORS[Math.floor(Math.random() * COLORS.length)]
-        });
-      }
-      
-      setParticles(newParticles);
+      // Use requestAnimationFrame to schedule state update after render
+      const frameId = requestAnimationFrame(() => {
+        setParticles(generateParticles(emoji));
+      });
       
       // Clear after animation
-      const timer = setTimeout(() => setParticles([]), 2500);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => {
+        setParticles([]);
+        hasTriggered.current = false;
+      }, 2500);
+      
+      return () => {
+        cancelAnimationFrame(frameId);
+        clearTimeout(timer);
+      };
+    }
+    
+    if (!show) {
+      hasTriggered.current = false;
     }
   }, [show, emoji]);
   

@@ -313,7 +313,7 @@ function getSpendingReaction(percentOfBudget) {
 
 // Determine robot mood based on context
 export function getRobotMood({ 
-  expenses = [], 
+  expenses: _expenses = [], 
   monthTotal = 0, 
   budget = null, 
   streak = 0,

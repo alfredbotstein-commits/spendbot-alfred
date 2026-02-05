@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../utils/format';
 import { getLocalDateString, getLocalMonthString } from '../utils/dateUtils';
@@ -188,8 +188,8 @@ export function MoneySavedWidget({
     500
   );
   
-  // Calculate dining out streak
-  const diningStreak = calculateStreakSavings(
+  // Calculate dining out streak (reserved for future feature)
+  const _diningStreak = calculateStreakSavings(
     expenses?.filter(e => e.category_id === 'dining'),
     'dining',
     2000

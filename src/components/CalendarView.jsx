@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { CalendarGrid } from './CalendarGrid';
 import { DayDetailModal } from './DayDetailModal';
 import { RobotBuddy } from './RobotBuddy';
@@ -83,7 +83,8 @@ export function CalendarView({
   settings,
   onClose,
 }) {
-  const now = new Date();
+  // Memoize 'now' to prevent useMemo dependency changes on every render
+  const now = useMemo(() => new Date(), []);
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [selectedDate, setSelectedDate] = useState(null);
@@ -106,6 +107,7 @@ export function CalendarView({
   }, [expenses]);
 
   // Calculate stats for current view month
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const monthStats = useMemo(() => {
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
     const isCurrentMonth = viewYear === now.getFullYear() && viewMonth === now.getMonth();
@@ -203,7 +205,7 @@ export function CalendarView({
     setViewMonth(now.getMonth());
   };
 
-  const handleSelectDate = (dateStr, date) => {
+  const handleSelectDate = (dateStr, _date) => {
     playSound('tap');
     haptic('medium');
     setSelectedDate(dateStr);

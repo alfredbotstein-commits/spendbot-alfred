@@ -1,14 +1,17 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { formatCurrency } from '../utils/format';
 
 /**
  * QuickAdd - Shows frequent/recent expense patterns for one-tap adding
  */
 export function QuickAdd({ expenses, categories, onQuickAdd, onClose }) {
+  // Use useState with lazy initializer for timestamp - pure at render time
+  const [now] = useState(() => Date.now());
+  
   const suggestions = useMemo(() => {
     if (!expenses || expenses.length < 3) return [];
-
+    
     // Analyze spending patterns
     const patterns = {};
     
@@ -36,12 +39,12 @@ export function QuickAdd({ expenses, categories, onQuickAdd, onClose }) {
       .filter(p => p.count >= 2) // Must have at least 2 occurrences
       .sort((a, b) => {
         // Score: frequency * recency
-        const scoreA = a.count * (1 / (Date.now() - new Date(a.lastDate).getTime()));
-        const scoreB = b.count * (1 / (Date.now() - new Date(b.lastDate).getTime()));
+        const scoreA = a.count * (1 / (now - new Date(a.lastDate).getTime()));
+        const scoreB = b.count * (1 / (now - new Date(b.lastDate).getTime()));
         return scoreB - scoreA;
       })
       .slice(0, 4); // Top 4 suggestions
-  }, [expenses]);
+  }, [expenses, now]);
 
   // Also show last expense for quick repeat
   const lastExpense = expenses?.[0];

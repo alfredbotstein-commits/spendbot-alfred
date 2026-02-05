@@ -1,13 +1,10 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   GlassCard, 
   BentoGrid, 
-  BentoItem,
   AnimatedBackground,
-  MeshGradient,
   NoiseTexture,
-  ProgressRing,
   MiniProgressBar,
   SparklineChart,
 } from './ui';
@@ -19,7 +16,7 @@ import { WeeklyReportTrigger } from './WeeklyReport';
 import { NoSpendDayBadge } from './NoSpendCelebration';
 import { FinancialFortuneCard } from './FinancialFortune';
 import { SpendingPersonalityCard } from './SpendingPersonality';
-import { BudgetHealthMeter, BudgetHealthBadge } from './BudgetHealth';
+import { BudgetHealthMeter } from './BudgetHealth';
 import { useKonamiCode, useShakeDetection, KonamiEasterEgg, ShakeEasterEgg, SecretTapZone } from './EasterEggs';
 import { playSound } from '../utils/sounds';
 import { haptic } from '../utils/haptics';
@@ -164,11 +161,15 @@ function CategoryPill({ category, total, percentage, maxTotal }) {
 
 // Recent expense item
 function ExpenseItem({ expense, category }) {
-  const time = new Date(expense.date || expense.created_at || Date.now());
-  const isToday = time.toDateString() === new Date().toDateString();
-  const timeStr = isToday 
-    ? time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
-    : time.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  const dateStr = expense.date || expense.created_at;
+  const time = dateStr ? new Date(dateStr) : null;
+  const today = useMemo(() => new Date(), []);
+  const isToday = time && time.toDateString() === today.toDateString();
+  const timeStr = !time 
+    ? 'Just now'
+    : isToday 
+      ? time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+      : time.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
   return (
     <motion.div
@@ -213,7 +214,7 @@ export function DashboardV2({
   const [showShakeEgg, setShowShakeEgg] = useState(false);
 
   // Robot buddy hook
-  const { mood, getContextualMessage } = useRobotBuddy({
+  const { mood } = useRobotBuddy({
     expenses,
     settings,
     monthTotal,
@@ -280,15 +281,7 @@ export function DashboardV2({
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const daysLeft = daysInMonth - now.getDate();
   
-  // Calculate daily budget remaining (null if no budget, 0 if exceeded)
-  const dailyBudgetRemaining = (() => {
-    if (!settings?.monthlyBudget) return null;
-    if (monthTotal >= settings.monthlyBudget) return 0;
-    if (daysLeft <= 0) return null; // Last day of month
-    return (settings.monthlyBudget - monthTotal) / daysLeft;
-  })();
-
-  // Robot greeting on mount
+  // Robot greeting on mount - intentionally only runs once
   useEffect(() => {
     const timer = setTimeout(() => {
       let messageType = 'greeting';
@@ -305,6 +298,7 @@ export function DashboardV2({
     }, 800);
     
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const recentExpenses = expenses.slice(0, 4);
@@ -428,7 +422,7 @@ export function DashboardV2({
         {/* Daily Challenge */}
         <DailyChallenge 
           expenses={expenses}
-          onComplete={(challenge) => {
+          onComplete={() => {
             playSound('success');
             haptic('success');
           }}

@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useMemo, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { formatCurrency } from '../utils/format';
 import { getLocalDateString } from '../utils/dateUtils';
 
@@ -19,7 +19,7 @@ const CHALLENGE_TYPES = [
     difficulty: 'hard',
     // Only complete if it's late enough in the day (after 6 PM) AND no spending
     // This prevents instant completion at midnight
-    checkComplete: (todayTotal, todayCount) => {
+    checkComplete: (todayTotal, _todayCount) => {
       const hour = new Date().getHours();
       return todayTotal === 0 && hour >= 18;
     },
@@ -34,7 +34,7 @@ const CHALLENGE_TYPES = [
     emoji: '🪶',
     description: 'Keep spending under $20 today',
     difficulty: 'medium',
-    checkComplete: (todayTotal, todayCount) => {
+    checkComplete: (todayTotal, _todayCount) => {
       const hour = new Date().getHours();
       return todayTotal <= 2000 && todayTotal > 0 && hour >= 18;
     },
@@ -47,7 +47,7 @@ const CHALLENGE_TYPES = [
     emoji: '💪',
     description: 'Spend less than $10 today',
     difficulty: 'hard',
-    checkComplete: (todayTotal, todayCount) => {
+    checkComplete: (todayTotal, _todayCount) => {
       const hour = new Date().getHours();
       return todayTotal <= 1000 && todayTotal > 0 && hour >= 18;
     },
@@ -194,11 +194,13 @@ export function DailyChallenge({ expenses, onComplete }) {
   const [dismissed, setDismissed] = useState(false);
   const [celebrated, setCelebrated] = useState(false);
   
-  const safeExpenses = expenses || [];
+  // Use useState with lazy initializer for timestamp - pure at render time
+  const [now] = useState(() => Date.now());
   
   const challengeData = useMemo(() => {
+    const safeExpenses = expenses || [];
     const today = getLocalDateString();
-    const yesterday = getLocalDateString(new Date(Date.now() - 86400000));
+    const yesterday = getLocalDateString(new Date(now - 86400000));
     
     const todayExpenses = safeExpenses.filter(e => e.date?.startsWith(today));
     const yesterdayExpenses = safeExpenses.filter(e => e.date?.startsWith(yesterday));
@@ -208,7 +210,7 @@ export function DailyChallenge({ expenses, onComplete }) {
     const todayCount = todayExpenses.length;
     
     // Calculate daily average from last 30 days
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
+    const thirtyDaysAgo = new Date(now - 30 * 86400000);
     const recentExpenses = safeExpenses.filter(e => new Date(e.date) >= thirtyDaysAgo);
     const totalSpent = recentExpenses.reduce((sum, e) => sum + e.amount, 0);
     const daysWithData = new Set(recentExpenses.map(e => e.date?.slice(0, 10))).size;
@@ -221,7 +223,7 @@ export function DailyChallenge({ expenses, onComplete }) {
       todayExpenses,
       dailyAvg,
     };
-  }, [safeExpenses]);
+  }, [expenses, now]);
   
   const challenge = useMemo(() => {
     return getTodaysChallenge(getDayOfYear(), challengeData);
@@ -238,11 +240,14 @@ export function DailyChallenge({ expenses, onComplete }) {
     );
   }, [challenge, challengeData]);
   
-  // Celebrate on completion
+  // Celebrate on completion - use callback to avoid sync setState in effect
   useEffect(() => {
     if (isComplete && !celebrated) {
-      setCelebrated(true);
-      onComplete?.(challenge);
+      const frameId = requestAnimationFrame(() => {
+        setCelebrated(true);
+        onComplete?.(challenge);
+      });
+      return () => cancelAnimationFrame(frameId);
     }
   }, [isComplete, celebrated, challenge, onComplete]);
   

@@ -69,13 +69,13 @@ export function SpendingPredictions({ expenses, monthlyBudget }) {
 
   const { 
     projectedTotal, 
-    adjustedProjection,
+    adjustedProjection: _adjustedProjection,
     dailyRate,
     daysRemaining,
     isAccelerating,
     isDecelerating,
     budget,
-    onTrack,
+    onTrack: _onTrack,
     percentOfBudget
   } = predictions;
 

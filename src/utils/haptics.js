@@ -59,7 +59,7 @@ export function haptic(type = 'light') {
   
   try {
     navigator.vibrate(pattern);
-  } catch (e) {
+  } catch {
     // Vibration failed, silently ignore
   }
 }

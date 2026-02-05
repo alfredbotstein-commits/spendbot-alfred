@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../utils/format';
-import { getLocalDateString, getLocalMonthString } from '../utils/dateUtils';
+import { getLocalDateString } from '../utils/dateUtils';
 
 /**
  * WeeklyReport - A beautiful summary card that makes users feel accomplished
@@ -127,7 +127,7 @@ export function WeeklyReport({ expenses, monthlyBudget, onClose }) {
   
   if (!report || report.expenseCount === 0) return null;
   
-  const { gradeInfo, score, weekTotal, vsLastWeek, daysWithExpenses, weeklyBudget } = report;
+  const { gradeInfo, score: _score, weekTotal, vsLastWeek, daysWithExpenses, weeklyBudget } = report;
   
   return (
     <motion.div

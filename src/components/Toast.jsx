@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
-export function Toast({ show, message, action, onAction, onDismiss }) {
+export function Toast({ show, message, action, onAction, onDismiss: _onDismiss }) {
   return (
     <AnimatePresence>
       {show && (

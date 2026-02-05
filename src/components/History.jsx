@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
-import { formatCurrency, formatTime, formatDate, groupExpensesByDate } from '../utils/format';
+import { formatCurrency, formatTime, groupExpensesByDate } from '../utils/format';
 import { Toast } from './Toast';
 import haptic from '../utils/haptics';
 import playSound from '../utils/sounds';
@@ -26,11 +26,12 @@ function getDateRange(rangeId, customDate = null) {
     case 'today':
       return { start, end: now };
     
-    case 'yesterday':
+    case 'yesterday': {
       start.setDate(start.getDate() - 1);
       const yesterdayEnd = new Date(start);
       yesterdayEnd.setHours(23, 59, 59, 999);
       return { start, end: yesterdayEnd };
+    }
     
     case 'week':
       start.setDate(start.getDate() - start.getDay()); // Sunday
@@ -236,7 +237,6 @@ function CategoryFilter({ categories, selected, onToggle }) {
 function PeriodSummary({ expenses, categories }) {
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
   const count = expenses.length;
-  const avgPerExpense = count > 0 ? total / count : 0;
   
   // Top category
   const categoryTotals = {};
@@ -376,7 +376,7 @@ export function History({ expenses, categories, onDelete, onBack }) {
       
       return true;
     });
-  }, [expenses, dateRange, customDate, categoryFilter, searchQuery, pendingDelete]);
+  }, [expenses, dateRange, customDate, categoryFilter, searchQuery, pendingDelete, categories]);
   
   const grouped = groupExpensesByDate(filteredExpenses);
   
@@ -406,14 +406,6 @@ export function History({ expenses, categories, onDelete, onBack }) {
       }
     };
   }, []);
-
-  // Get display label for date range
-  const dateRangeLabel = useMemo(() => {
-    if (dateRange === 'custom' && customDate) {
-      return formatDateHeader(customDate);
-    }
-    return DATE_RANGES.find(r => r.id === dateRange)?.label || 'All Time';
-  }, [dateRange, customDate]);
 
   return (
     <div className="min-h-screen bg-background">

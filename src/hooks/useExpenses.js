@@ -1,20 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, getMonthExpenses, getMonthExpenseCount, addExpense, deleteExpense, updateSettings, getStreakInfo, getAllExpenses, clearAllData } from '../db';
 
 export function useExpenses() {
-  const [loading, setLoading] = useState(true);
-
   const expenses = useLiveQuery(() => getMonthExpenses(), []);
   const categories = useLiveQuery(() => db.categories.orderBy('sortOrder').toArray(), []);
   const settings = useLiveQuery(() => db.settings.get('settings'), []);
   const monthCount = useLiveQuery(() => getMonthExpenseCount(), []);
   const streakInfo = useLiveQuery(() => getStreakInfo(), []);
 
-  useEffect(() => {
-    if (expenses !== undefined && categories !== undefined && settings !== undefined) {
-      setLoading(false);
-    }
+  // Derive loading state from data availability - no effect needed
+  const loading = useMemo(() => {
+    return expenses === undefined || categories === undefined || settings === undefined;
   }, [expenses, categories, settings]);
 
   const monthTotal = expenses?.reduce((sum, e) => sum + e.amount, 0) || 0;

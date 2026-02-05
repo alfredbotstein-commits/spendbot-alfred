@@ -1,6 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
-import { RobotBuddy, getRandomMessage } from './RobotBuddy';
+import { motion } from 'framer-motion';
+import { RobotBuddy } from './RobotBuddy';
 
 /**
  * Achievement System - NOW WITH 100% MORE PERSONALITY
@@ -402,7 +401,7 @@ export function calculateAchievementStats(expenses, settings = {}) {
   let hasSaturday = false;
   let hasSunday = false;
   
-  safeExpenses.forEach((expense, index) => {
+  safeExpenses.forEach((expense) => {
     const date = new Date(expense.date || expense.created_at);
     const hour = date.getHours();
     const day = date.getDay();

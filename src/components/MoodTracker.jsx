@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import haptic from '../utils/haptics';
 import playSound from '../utils/sounds';
 
@@ -105,7 +105,8 @@ export function MoodInsights({ expenses }) {
     .sort((a, b) => b[1] - a[1])[0];
   
   const dominantMoodData = MOODS.find(m => m.id === dominantMood?.[0]);
-  const highestSpendMoodData = MOODS.find(m => m.id === highestSpendMood?.[0]);
+  // Reserved for future mood spending comparison feature
+  const _highestSpendMoodData = MOODS.find(m => m.id === highestSpendMood?.[0]);
   
   // Calculate impulse percentage
   const impulseCount = moodCounts['impulse'] || 0;

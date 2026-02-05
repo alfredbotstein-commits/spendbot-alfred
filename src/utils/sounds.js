@@ -39,8 +39,6 @@ function createDing(frequency = 880, duration = 0.15, volume = 0.3) {
  * Create a "coin" sound - multiple quick high-pitched dings
  */
 function playCoin() {
-  const ctx = getAudioContext();
-  
   // Multiple overlapping dings for a "coin" effect
   [0, 0.05, 0.1].forEach((delay, i) => {
     setTimeout(() => {
@@ -212,7 +210,7 @@ export function playSound(name) {
   if (soundFn) {
     try {
       soundFn();
-    } catch (e) {
+    } catch {
       // Audio context may need user interaction first
     }
   }
@@ -259,7 +257,7 @@ export function initAudio() {
     if (audioContext.state === 'suspended') {
       audioContext.resume();
     }
-  } catch (e) {
+  } catch {
     // Audio not supported
   }
 }

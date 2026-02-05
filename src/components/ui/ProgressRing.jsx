@@ -8,6 +8,14 @@ import { useMemo } from 'react';
  * Features smooth animations and customizable colors.
  */
 
+const RING_COLORS = {
+  accent: '#6366F1',
+  success: '#10B981',
+  warning: '#F59E0B',
+  danger: '#EF4444',
+  gradient: 'url(#progressGradient)',
+};
+
 export function ProgressRing({
   progress = 0, // 0-100
   size = 120,
@@ -19,13 +27,6 @@ export function ProgressRing({
   children,
   className = '',
 }) {
-  const colors = {
-    accent: '#6366F1',
-    success: '#10B981',
-    warning: '#F59E0B',
-    danger: '#EF4444',
-    gradient: 'url(#progressGradient)',
-  };
 
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -33,10 +34,10 @@ export function ProgressRing({
 
   // Auto-select color based on progress
   const autoColor = useMemo(() => {
-    if (color !== 'auto') return colors[color] || color;
-    if (progress >= 100) return colors.danger;
-    if (progress >= 80) return colors.warning;
-    return colors.success;
+    if (color !== 'auto') return RING_COLORS[color] || color;
+    if (progress >= 100) return RING_COLORS.danger;
+    if (progress >= 80) return RING_COLORS.warning;
+    return RING_COLORS.success;
   }, [progress, color]);
 
   return (

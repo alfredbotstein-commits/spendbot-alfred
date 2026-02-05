@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 /**
  * Financial Fortune - Daily "horoscope" for your wallet
@@ -190,13 +190,10 @@ export function getTodaysFortune() {
 
 // Fortune card component
 export function FinancialFortuneCard({ onDismiss }) {
-  const [fortune, setFortune] = useState(null);
+  // Use lazy initializer instead of useEffect for initial state
+  const [fortune] = useState(() => getTodaysFortune());
   const [revealed, setRevealed] = useState(false);
   const [minimized, setMinimized] = useState(false);
-
-  useEffect(() => {
-    setFortune(getTodaysFortune());
-  }, []);
 
   if (!fortune) return null;
 

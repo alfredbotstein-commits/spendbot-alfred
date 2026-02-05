@@ -1,5 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { formatCurrency } from '../utils/format';
+import { motion } from 'framer-motion';
 
 /**
  * Spending Roasts - The robot gently (or not so gently) roasts your purchases

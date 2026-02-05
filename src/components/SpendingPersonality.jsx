@@ -1,6 +1,5 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useState, useMemo } from 'react';
-import { formatCurrency } from '../utils/format';
 
 /**
  * Spending Personality - What kind of spender are you?

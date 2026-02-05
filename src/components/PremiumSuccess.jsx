@@ -15,18 +15,6 @@ export function PremiumSuccess() {
   const [error, setError] = useState(null);
   const [showConfetti, setShowConfetti] = useState(false);
 
-  useEffect(() => {
-    const sessionId = searchParams.get('session_id');
-    
-    if (!sessionId) {
-      setStatus('error');
-      setError('No session ID found');
-      return;
-    }
-
-    verifyAndUpgrade(sessionId);
-  }, [searchParams]);
-
   const verifyAndUpgrade = async (sessionId) => {
     try {
       // Verify the session with Stripe via our Netlify function
@@ -71,6 +59,20 @@ export function PremiumSuccess() {
       setError(err.message || 'Failed to verify payment');
     }
   };
+
+  // Run verification on mount
+  useEffect(() => {
+    const sessionId = searchParams.get('session_id');
+    
+    if (!sessionId) {
+      setStatus('error');
+      setError('No session ID found');
+      return;
+    }
+
+    verifyAndUpgrade(sessionId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   if (status === 'verifying') {
     return (

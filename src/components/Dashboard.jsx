@@ -100,7 +100,7 @@ export function Dashboard({
   const [showAchievements, setShowAchievements] = useState(false);
   
   // Robot buddy hook
-  const { mood, getContextualMessage, getExpenseReaction } = useRobotBuddy({
+  const { mood } = useRobotBuddy({
     expenses,
     settings,
     monthTotal,
@@ -134,6 +134,7 @@ export function Dashboard({
     }, 1000);
     
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Calculate date info for insights

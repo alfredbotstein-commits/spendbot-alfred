@@ -19,13 +19,33 @@ export function useSupabaseSettings() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
 
-  // Fetch settings from Supabase
+  // Fetch settings from Supabase - inline createDefaultSettings to avoid dependency issues
   const fetchSettings = useCallback(async () => {
     if (!user) {
       setSettings(DEFAULT_SETTINGS);
       setLoading(false);
       return;
     }
+
+    // Helper function to create default settings (inlined to avoid stale closure)
+    const createDefaults = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('user_settings')
+          .insert({
+            user_id: user.id,
+            ...DEFAULT_SETTINGS,
+          })
+          .select()
+          .single();
+
+        if (!error && data) {
+          setSettings(data);
+        }
+      } catch (err) {
+        console.error('Error creating default settings:', err);
+      }
+    };
 
     try {
       const { data, error } = await supabase
@@ -47,7 +67,7 @@ export function useSupabaseSettings() {
         });
       } else {
         // Create default settings for new user
-        await createDefaultSettings();
+        await createDefaults();
       }
     } catch (err) {
       console.error('Error fetching settings:', err);
@@ -55,27 +75,6 @@ export function useSupabaseSettings() {
       setLoading(false);
     }
   }, [user]);
-
-  const createDefaultSettings = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('user_settings')
-        .insert({
-          user_id: user.id,
-          ...DEFAULT_SETTINGS,
-        })
-        .select()
-        .single();
-
-      if (!error && data) {
-        setSettings(data);
-      }
-    } catch (err) {
-      console.error('Error creating default settings:', err);
-    }
-  };
 
   useEffect(() => {
     fetchSettings();

@@ -5,7 +5,7 @@ import { getLocalDateString, getLocalMonthString, getCurrentDayOfMonth, getDaysI
 /**
  * SmartInsights - Generates personalized, actionable insights based on spending patterns
  */
-export function SmartInsights({ expenses, monthlyBudget, isPremium }) {
+export function SmartInsights({ expenses, monthlyBudget, isPremium: _isPremium }) {
   const insights = useMemo(() => {
     if (!expenses || expenses.length === 0) return [];
 
@@ -25,10 +25,10 @@ export function SmartInsights({ expenses, monthlyBudget, isPremium }) {
     const lastMonthExpenses = expenses.filter(e => e.date?.startsWith(lastMonthStr));
     const lastMonthTotal = lastMonthExpenses.reduce((sum, e) => sum + e.amount, 0);
 
-    // Today's expenses
+    // Today's expenses (reserved for future daily insights)
     const todayStr = getLocalDateString();
     const todayExpenses = expenses.filter(e => e.date?.startsWith(todayStr));
-    const todayTotal = todayExpenses.reduce((sum, e) => sum + e.amount, 0);
+    const _todayTotal = todayExpenses.reduce((sum, e) => sum + e.amount, 0);
 
     // Category breakdown
     const categoryTotals = {};
