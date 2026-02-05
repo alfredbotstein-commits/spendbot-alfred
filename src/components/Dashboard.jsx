@@ -162,12 +162,14 @@ export function Dashboard({
             <button 
               onClick={() => setShowAchievements(true)} 
               className="text-text-secondary text-2xl hover:opacity-80 transition-opacity"
+              aria-label="View achievements"
             >
               🏆
             </button>
             <button 
               onClick={onSettingsClick} 
               className="text-text-secondary text-2xl hover:opacity-80 transition-opacity"
+              aria-label="Open settings"
             >
               ⚙️
             </button>

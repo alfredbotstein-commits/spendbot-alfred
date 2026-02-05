@@ -231,6 +231,7 @@ export function FinancialFortuneCard({ onDismiss }) {
             <button
               onClick={() => setMinimized(true)}
               className="text-text-muted hover:text-text-secondary text-sm"
+              aria-label="Minimize fortune"
             >
               ▲
             </button>
