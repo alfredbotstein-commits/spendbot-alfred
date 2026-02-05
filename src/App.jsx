@@ -25,6 +25,7 @@ const CalendarView = lazy(() => import('./components/CalendarView').then(m => ({
 const PremiumSuccess = lazy(() => import('./components/PremiumSuccess').then(m => ({ default: m.PremiumSuccess })));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then(m => ({ default: m.TermsPage })));
+const TestPage = lazy(() => import('./pages/TestPage').then(m => ({ default: m.TestPage })));
 
 function AppContent() {
   const { user, profile, loading: authLoading, isPremium } = useAuth();
@@ -284,6 +285,13 @@ function App() {
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
+        {/* Visual QA Test Page - bypass auth */}
+        <Route path="/test" element={
+          <Suspense fallback={<RouteFallback />}>
+            <TestPage />
+          </Suspense>
+        } />
+        
         {/* Public pages - accessible without auth */}
         <Route path="/privacy" element={
           <Suspense fallback={<RouteFallback />}>

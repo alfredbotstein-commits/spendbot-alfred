@@ -2,9 +2,9 @@ import { motion } from 'framer-motion';
 
 export function CategorySelector({ categories, selected, onSelect }) {
   return (
-    <div className="overflow-x-auto scrollbar-hide">
+    <div className="overflow-x-auto overflow-y-visible scrollbar-hide">
       <div 
-        className="flex gap-3 px-6 py-2"
+        className="flex gap-3 px-6 pt-1 pb-2"
         role="listbox"
         aria-label="Select expense category"
       >
