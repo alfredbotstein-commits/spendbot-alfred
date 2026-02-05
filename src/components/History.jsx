@@ -125,6 +125,7 @@ function DatePicker({ selectedDate, onSelect, onClose, expenses }) {
           <button 
             onClick={handlePrevMonth}
             className="p-2 text-text-secondary hover:text-text-primary"
+            aria-label="Previous month"
           >
             ←
           </button>
@@ -134,6 +135,7 @@ function DatePicker({ selectedDate, onSelect, onClose, expenses }) {
           <button 
             onClick={handleNextMonth}
             className="p-2 text-text-secondary hover:text-text-primary"
+            aria-label="Next month"
           >
             →
           </button>
