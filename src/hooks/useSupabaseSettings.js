@@ -81,17 +81,26 @@ export function useSupabaseSettings() {
     fetchSettings();
   }, [fetchSettings]);
 
-  // Update settings
+  // Update settings with timeout to prevent hanging on stale sessions
   const updateSettings = async (updates) => {
     if (!user) return { error: 'Not authenticated' };
 
+    // Create a timeout promise
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Settings update timed out')), 8000)
+    );
+
     try {
-      const { data, error } = await supabase
-        .from('user_settings')
-        .update(updates)
-        .eq('user_id', user.id)
-        .select()
-        .single();
+      // Race the update against the timeout
+      const { data, error } = await Promise.race([
+        supabase
+          .from('user_settings')
+          .update(updates)
+          .eq('user_id', user.id)
+          .select()
+          .single(),
+        timeoutPromise
+      ]);
 
       if (error) throw error;
 

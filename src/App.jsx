@@ -113,14 +113,17 @@ function AppContent() {
     return (
       <Onboarding 
         onComplete={async () => {
+          // Use try/finally to GUARANTEE setShowOnboarding(false) is called
+          // User should NEVER be trapped on onboarding screen
           try {
             await updateSettings({ onboardingComplete: true });
           } catch (error) {
             console.error('Failed to save onboarding status:', error);
             // Don't trap the user - they can proceed even if save fails
             // Settings will be created on next successful auth
+          } finally {
+            setShowOnboarding(false);
           }
-          setShowOnboarding(false);
         }} 
       />
     );

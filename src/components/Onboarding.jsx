@@ -95,6 +95,14 @@ function ProgressDots({ current, total }) {
   );
 }
 
+// Timeout helper - ensures we never hang forever
+const withTimeout = (promise, ms, fallback) => {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => setTimeout(() => resolve(fallback), ms))
+  ]);
+};
+
 export function Onboarding({ onComplete }) {
   const [step, setStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -105,20 +113,19 @@ export function Onboarding({ onComplete }) {
     setIsLoading(true);
     
     try {
-      await onComplete();
+      // Give onComplete 5 seconds max - user should NEVER be trapped
+      await withTimeout(
+        onComplete(),
+        5000,
+        { timedOut: true }
+      );
     } catch (error) {
+      // Log but don't block - user can proceed
       console.error('Onboarding completion error:', error);
-      // Still try to complete even if settings update fails
-      // The user can proceed - we'll sync settings later
-      try {
-        await onComplete();
-      } catch {
-        // Force completion on second failure - don't trap user
-        console.warn('Forcing onboarding completion after error');
-      }
-    } finally {
-      setIsLoading(false);
     }
+    
+    // ALWAYS finish loading - never trap the user
+    setIsLoading(false);
   }, [onComplete, isLoading]);
 
   const handleNext = useCallback(async () => {
