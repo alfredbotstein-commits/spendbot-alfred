@@ -16,19 +16,26 @@ const simpleLock = async (name, acquireTimeout, fn) => {
   return await fn();
 };
 
-// Custom fetch wrapper that handles AbortError gracefully
-// This prevents AbortErrors from bubbling up when:
+// Custom fetch wrapper that REMOVES abort signals entirely
+// This prevents AbortErrors from happening when:
 // - React StrictMode unmounts/remounts components
 // - PWA service worker intercepts requests
 // - Browser backgrounds the tab
+// - Supabase's internal AbortController fires prematurely
+// Since SpendBot is a simple PWA that doesn't need request cancellation,
+// we completely ignore abort signals.
 const resilientFetch = async (url, options = {}) => {
+  // CRITICAL: Remove the signal from fetch options to prevent AbortError
+  // eslint-disable-next-line no-unused-vars
+  const { signal, ...optionsWithoutSignal } = options || {};
+  
   try {
-    return await fetch(url, options);
+    return await fetch(url, optionsWithoutSignal);
   } catch (error) {
-    // If it's an AbortError, create a synthetic response that Supabase can handle gracefully
+    // If somehow an abort still happens, retry without signal
     if (error.name === 'AbortError') {
-      console.log('[Supabase] Request aborted:', url);
-      throw error; // Let Supabase's internal error handling deal with it
+      console.log('[Supabase] AbortError caught, retrying without signal:', url);
+      return await fetch(url, optionsWithoutSignal);
     }
     throw error;
   }

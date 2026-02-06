@@ -21,9 +21,14 @@ export function useSupabaseSettings() {
 
   // Helper to check if error is an abort (should be ignored/retried)
   const isAbortError = (err) => {
-    return err?.name === 'AbortError' || 
-           err?.message?.includes('AbortError') ||
-           err?.message?.includes('signal is aborted');
+    if (!err) return false;
+    // Check error name
+    if (err.name === 'AbortError') return true;
+    // Check error message and details (Supabase wraps errors with various structures)
+    const errStr = String(err.message || err.details || err || '');
+    return errStr.includes('AbortError') || 
+           errStr.includes('signal is aborted') ||
+           errStr.includes('aborted without reason');
   };
 
   // Fetch settings from Supabase - inline createDefaultSettings to avoid dependency issues

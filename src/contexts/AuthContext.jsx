@@ -62,20 +62,33 @@ export function AuthProvider({ children }) {
       }
     );
 
-    // Get initial session - but for OAuth callbacks, let onAuthStateChange handle it
-    const initSession = async () => {
+    // Get initial session with retry logic for AbortError
+    const initSession = async (retryCount = 0) => {
+      const maxRetries = 3;
+      
       try {
         // This triggers Supabase to parse the URL and fire onAuthStateChange
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
+          // Check if it's an AbortError and we can retry
+          if (isAbortError(error) && retryCount < maxRetries) {
+            console.log(`Session fetch aborted, retrying (${retryCount + 1}/${maxRetries})...`);
+            await new Promise(r => setTimeout(r, 500 * (retryCount + 1))); // Exponential backoff
+            return initSession(retryCount + 1);
+          }
+          
           console.error('Session error:', error);
           // Try refreshing the session in case it's stale (Safari idle issue)
-          const { data: refreshData } = await supabase.auth.refreshSession();
-          if (refreshData?.session) {
-            setUser(refreshData.session.user);
-            await fetchProfile(refreshData.session.user.id);
-            return;
+          try {
+            const { data: refreshData } = await supabase.auth.refreshSession();
+            if (refreshData?.session) {
+              setUser(refreshData.session.user);
+              await fetchProfile(refreshData.session.user.id);
+              return;
+            }
+          } catch (refreshErr) {
+            console.log('Session refresh failed:', refreshErr);
           }
           setLoading(false);
           return;
@@ -92,7 +105,13 @@ export function AuthProvider({ children }) {
           }
         }
       } catch (error) {
-        // Ignore AbortError - happens during auth transitions
+        // Handle AbortError with retry
+        if (isAbortError(error) && retryCount < maxRetries) {
+          console.log(`Session fetch aborted, retrying (${retryCount + 1}/${maxRetries})...`);
+          await new Promise(r => setTimeout(r, 500 * (retryCount + 1)));
+          return initSession(retryCount + 1);
+        }
+        
         if (!isAbortError(error)) {
           console.error('Auth session error:', error);
         }
@@ -110,11 +129,16 @@ export function AuthProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Helper to check if error is an abort (should be ignored)
+  // Helper to check if error is an abort (should be ignored/retried)
   const isAbortError = (err) => {
-    return err?.name === 'AbortError' || 
-           err?.message?.includes('AbortError') ||
-           err?.message?.includes('signal is aborted');
+    if (!err) return false;
+    // Check error name
+    if (err.name === 'AbortError') return true;
+    // Check error message (various string formats)
+    const errStr = String(err.message || err.details || err || '');
+    return errStr.includes('AbortError') || 
+           errStr.includes('signal is aborted') ||
+           errStr.includes('aborted without reason');
   };
 
   const fetchProfile = async (userId) => {
