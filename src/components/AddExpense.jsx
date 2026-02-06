@@ -35,7 +35,25 @@ export function AddExpense({ categories, onSave, onClose, expenses = [] }) {
     setSaving(true);
     setError(null);
     
-    const result = await onSave(amountCents, category.id);
+    // Failsafe timeout - NEVER let the UI hang
+    const timeoutPromise = new Promise((resolve) => 
+      setTimeout(() => resolve({ 
+        success: false, 
+        error: 'Request timed out. Please check your connection and try again.' 
+      }), 8000)
+    );
+    
+    let result;
+    try {
+      result = await Promise.race([
+        onSave(amountCents, category.id),
+        timeoutPromise
+      ]);
+    } catch (err) {
+      // Catch any unexpected errors
+      console.error('Save error:', err);
+      result = { success: false, error: 'Something went wrong. Please try again.' };
+    }
     
     if (result.success) {
       setSuccess(true);

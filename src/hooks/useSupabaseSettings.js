@@ -102,13 +102,13 @@ export function useSupabaseSettings() {
   const updateSettings = async (updates) => {
     if (!user) return { error: 'Not authenticated' };
 
-    // Create a timeout promise
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Settings update timed out')), 8000)
-    );
-
     const maxRetries = 2;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      // Create a NEW timeout promise for each attempt (5 seconds each)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Settings update timed out')), 5000)
+      );
+
       try {
         // Race the update against the timeout
         const { data, error } = await Promise.race([
@@ -132,10 +132,10 @@ export function useSupabaseSettings() {
           continue;
         }
         console.error('Error updating settings:', err);
-        return { error: err.message };
+        return { error: err?.message || 'Settings update failed' };
       }
     }
-    return { error: 'Unknown error' };
+    return { error: 'Settings update failed' };
   };
 
   // Update streak

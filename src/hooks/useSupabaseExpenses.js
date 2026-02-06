@@ -87,7 +87,7 @@ export function useSupabaseExpenses() {
   // Add expense with timeout to prevent hanging on stale sessions
   const addExpense = async ({ amount, categoryId, note, date }) => {
     if (!user) {
-      return { error: 'Not authenticated' };
+      return { error: 'Please sign in to save expenses' };
     }
 
     // Check free tier limit
@@ -100,16 +100,16 @@ export function useSupabaseExpenses() {
       return { error: 'limit_reached', limitReached: true };
     }
 
-    // Create a timeout promise to prevent hanging on stale sessions
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Save timed out - please try again')), 10000)
-    );
-
     // Retry logic for AbortError (happens during auth refresh)
     const maxRetries = 2;
     let lastError = null;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      // Create a NEW timeout promise for each attempt (5 seconds each)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Save timed out - please try again')), 5000)
+      );
+
       try {
         const { data, error } = await Promise.race([
           supabase
@@ -138,11 +138,11 @@ export function useSupabaseExpenses() {
           continue;
         }
         console.error('Error adding expense:', err);
-        return { error: err.message };
+        return { error: err?.message || 'Failed to save expense' };
       }
     }
 
-    return { error: lastError?.message || 'Unknown error' };
+    return { error: lastError?.message || 'Failed to save expense' };
   };
 
   // Delete expense with timeout and retry
