@@ -7,11 +7,22 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase credentials');
 }
 
+// Custom lock function that doesn't use Navigator Locks API.
+// The Navigator Locks API uses AbortController which can cause "AbortError: signal is aborted"
+// errors in Safari, PWAs, and when tabs are backgrounded. Since SpendBot is a single-page app
+// that doesn't need cross-tab session synchronization, we use a simple Promise-based lock.
+const simpleLock = async (name, acquireTimeout, fn) => {
+  // Just run the function directly - no cross-tab locking needed for this app
+  return await fn();
+};
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
+    // Use our custom lock function to avoid Navigator Locks AbortError issues
+    lock: simpleLock,
   },
 });
 
