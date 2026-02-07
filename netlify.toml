@@ -6,14 +6,14 @@
 [functions]
   node_bundler = "esbuild"
 
-# Redirect all routes to index.html for SPA
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-# Except for API/function routes
+# API/function routes (must come before catch-all)
 [[redirects]]
   from = "/.netlify/functions/*"
   to = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA catch-all (must be last)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
   status = 200
