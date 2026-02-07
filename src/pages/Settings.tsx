@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Plus, Pencil, Trash2, Check, X, AlertTriangle, ChevronRight } from 'lucide-react';
+import ShimmerBar from '../components/ShimmerBar';
 import {
   getCategories,
   getSettings,
@@ -212,8 +213,8 @@ export default function Settings() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-4xl animate-bounce">🤖</div>
+      <div className="min-h-screen bg-background">
+        <ShimmerBar />
       </div>
     );
   }

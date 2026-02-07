@@ -17,6 +17,7 @@ import {
 import AnimatedNumber from '../components/AnimatedNumber';
 import ExpenseItem from '../components/ExpenseItem';
 import { EmptyStates } from '../components/EmptyState';
+import ShimmerBar from '../components/ShimmerBar';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -80,10 +81,8 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center">
-        <div className="text-4xl animate-bounce">🤖</div>
-        <p className="text-sm text-text-secondary mt-3">Waking up the robot...</p>
-        <div className="loading-bar" />
+      <div className="min-h-screen bg-background">
+        <ShimmerBar />
       </div>
     );
   }
