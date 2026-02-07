@@ -11,6 +11,7 @@ import {
   deleteCategory,
   getCategoryExpenseCount,
   reassignExpenses,
+  getExpensesByCategory,
   Category, 
   UserSettings,
   DEFAULT_CATEGORIES
@@ -44,6 +45,9 @@ export default function Settings() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   
+  // Category spend totals
+  const [categorySpends, setCategorySpends] = useState<Record<string, number>>({});
+  
   // Delete confirmation state
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
   const [deleteExpenseCount, setDeleteExpenseCount] = useState(0);
@@ -54,12 +58,15 @@ export default function Settings() {
   }, []);
 
   async function loadData() {
-    const [cats, userSettings] = await Promise.all([
+    const now = new Date();
+    const [cats, userSettings, spends] = await Promise.all([
       getCategories(),
       getSettings(),
+      getExpensesByCategory(now.getFullYear(), now.getMonth()),
     ]);
     setCategories(cats);
     setSettings(userSettings || null);
+    setCategorySpends(spends);
     if (userSettings?.monthlyBudget) {
       setBudget((userSettings.monthlyBudget / 100).toString());
     }
@@ -175,29 +182,57 @@ export default function Settings() {
       <motion.header 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg flex items-center justify-between p-4 border-b border-border"
+        className="flex items-center p-4"
+        style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top, 0px))' }}
       >
         <button 
           onClick={() => navigate(-1)}
-          className="p-2 rounded-full hover:bg-surface transition-colors"
+          className="w-10 h-10 flex items-center justify-center rounded-xl"
         >
           <ArrowLeft className="w-6 h-6 text-text-secondary" />
         </button>
-        <h1 className="text-lg font-semibold font-heading text-text-primary">Settings</h1>
-        <div className="w-10" />
+        <h1 className="text-xl font-semibold font-heading text-text-primary ml-3">Settings</h1>
       </motion.header>
 
-      <div className="px-6 py-4 space-y-8">
+      <div className="px-4 py-4 space-y-6" style={{ paddingBottom: 'calc(3rem + env(safe-area-inset-bottom, 0px))' }}>
+        {/* Account Section */}
+        <section>
+          <div className="text-xs font-semibold uppercase tracking-[0.05em] text-text-muted px-0 mb-2">Account</div>
+          <div className="bg-surface-raised rounded-2xl overflow-hidden">
+            <button className="w-full flex items-center p-4 border-b border-surface-elevated active:bg-surface-elevated transition-colors">
+              <div className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-base mr-3">📧</div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-base text-text-primary">Email</div>
+                <div className="text-sm text-text-secondary mt-0.5">user@example.com</div>
+              </div>
+              <span className="text-text-muted">›</span>
+            </button>
+            <button className="w-full flex items-center p-4 border-b border-surface-elevated active:bg-surface-elevated transition-colors">
+              <div className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-base mr-3">🔐</div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-base text-text-primary">Password</div>
+              </div>
+              <span className="text-text-muted">›</span>
+            </button>
+            <button className="w-full flex items-center p-4 active:bg-surface-elevated transition-colors">
+              <div className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-base mr-3">🚪</div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-base text-danger">Sign Out</div>
+              </div>
+              <span className="text-text-muted">›</span>
+            </button>
+          </div>
+        </section>
+
         {/* Budget Section */}
         <section>
-          <h2 className="text-sm font-semibold text-text-secondary mb-3 uppercase tracking-wider">
-            Budget
-          </h2>
-          <div className="bg-surface-raised rounded-2xl p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-text-primary font-medium">Monthly Budget</div>
-                <div className="text-sm text-text-muted">
+          <div className="text-xs font-semibold uppercase tracking-[0.05em] text-text-muted px-0 mb-2">Budget</div>
+          <div className="bg-surface-raised rounded-2xl overflow-hidden">
+            <div className="flex items-center p-4">
+              <div className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-base mr-3">💰</div>
+              <div className="flex-1 min-w-0">
+                <div className="text-base text-text-primary">Monthly Budget</div>
+                <div className="text-sm text-text-secondary mt-0.5">
                   {settings?.monthlyBudget ? formatCurrency(settings.monthlyBudget) : 'Not set'}
                 </div>
               </div>
@@ -238,10 +273,10 @@ export default function Settings() {
 
         {/* Categories Section */}
         <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wider">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-xs font-semibold uppercase tracking-[0.05em] text-text-muted">
               Categories
-            </h2>
+            </div>
             <button
               onClick={startAddCategory}
               className="flex items-center gap-1 text-accent text-sm font-medium"
@@ -278,6 +313,11 @@ export default function Settings() {
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  {categorySpends[cat.id] ? (
+                    <span className="text-sm text-text-muted mr-1">
+                      {formatCurrency(categorySpends[cat.id])}
+                    </span>
+                  ) : null}
                   <button
                     onClick={() => startEditCategory(cat)}
                     className="p-2 rounded-lg hover:bg-surface transition-colors"
@@ -298,11 +338,80 @@ export default function Settings() {
           </div>
         </section>
 
-        {/* About Section */}
-        <section className="text-center py-8 text-text-muted">
-          <div className="text-3xl mb-2">🤖</div>
-          <div className="text-sm">SpendBot v1.1.0</div>
-          <div className="text-xs mt-1">Built by Loopspur</div>
+        {/* Data Section */}
+        <section>
+          <div className="text-xs font-semibold uppercase tracking-[0.05em] text-text-muted px-0 mb-2">Data</div>
+          <div className="bg-surface-raised rounded-2xl overflow-hidden">
+            <button className="w-full flex items-center p-4 border-b border-surface-elevated active:bg-surface-elevated transition-colors">
+              <div className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-base mr-3">📤</div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-base text-text-primary">Export to CSV</div>
+              </div>
+              <span className="text-text-muted">›</span>
+            </button>
+            <button className="w-full flex items-center p-4 active:bg-surface-elevated transition-colors">
+              <div className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-base mr-3">🗑️</div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-base text-danger">Clear All Data</div>
+              </div>
+              <span className="text-text-muted">›</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Support Section */}
+        <section>
+          <div className="text-xs font-semibold uppercase tracking-[0.05em] text-text-muted px-0 mb-2">Support</div>
+          <div className="bg-surface-raised rounded-2xl overflow-hidden">
+            <button className="w-full flex items-center p-4 border-b border-surface-elevated active:bg-surface-elevated transition-colors">
+              <div className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-base mr-3">❓</div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-base text-text-primary">Help & FAQ</div>
+              </div>
+              <span className="text-text-muted">›</span>
+            </button>
+            <button className="w-full flex items-center p-4 border-b border-surface-elevated active:bg-surface-elevated transition-colors">
+              <div className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-base mr-3">💬</div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-base text-text-primary">Contact Support</div>
+              </div>
+              <span className="text-text-muted">›</span>
+            </button>
+            <button className="w-full flex items-center p-4 active:bg-surface-elevated transition-colors">
+              <div className="w-8 h-8 flex items-center justify-center bg-surface rounded-lg text-base mr-3">⭐</div>
+              <div className="flex-1 min-w-0 text-left">
+                <div className="text-base text-text-primary">Rate SpendBot</div>
+              </div>
+              <span className="text-text-muted">›</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Premium CTA (for free users) */}
+        {!settings?.isPremium && (
+          <motion.button
+            whileTap={{ scale: 0.98 }}
+            className="w-full p-4 rounded-2xl text-center"
+            style={{ background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)' }}
+          >
+            <div className="text-base font-semibold text-white">✨ Upgrade to Premium</div>
+          </motion.button>
+        )}
+
+        {/* Footer */}
+        <section className="text-center py-6">
+          <div className="flex items-center justify-center gap-2 text-text-secondary mb-3">
+            <span>🤖</span>
+            <span className="text-sm">SpendBot v1.1.0</span>
+          </div>
+          <div className="text-xs text-text-muted mb-3">Made by Loopspur</div>
+          <div className="flex justify-center gap-4">
+            <button className="text-sm text-text-muted">Privacy</button>
+            <span className="text-text-muted">•</span>
+            <button className="text-sm text-text-muted">Terms</button>
+            <span className="text-text-muted">•</span>
+            <button className="text-sm text-text-muted">Licenses</button>
+          </div>
         </section>
       </div>
 
