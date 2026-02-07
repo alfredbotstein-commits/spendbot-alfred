@@ -6,13 +6,7 @@
 [functions]
   node_bundler = "esbuild"
 
-# API/function routes (must come before catch-all)
-[[redirects]]
-  from = "/.netlify/functions/*"
-  to = "/.netlify/functions/:splat"
-  status = 200
-
-# SPA catch-all (must be last)
+# SPA catch-all - Netlify automatically handles /.netlify/functions routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
