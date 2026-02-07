@@ -5,7 +5,6 @@ import { ArrowLeft, Delete } from 'lucide-react';
 import { addExpense, getCategories, Category, getMonthlyExpenseCount, getSettings } from '../db';
 import SuccessAnimation from '../components/SuccessAnimation';
 import PaywallModal from '../components/PaywallModal';
-import PaywallModal from '../components/PaywallModal';
 
 const FREE_LIMIT = 50;
 
