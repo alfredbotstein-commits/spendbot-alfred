@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpendBot Feature Graphic</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .feature-graphic {
+            width: 1024px;
+            height: 500px;
+            background: linear-gradient(135deg, #dbeafe 0%, #ffffff 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 70px 0 70px;
+            box-sizing: border-box;
+        }
+        
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .logo-symbol {
+            width: 40px;
+            height: 40px;
+            background: #2563eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 24px;
+        }
+        
+        .logo-text {
+            font-weight: 700;
+            font-size: 24px;
+            color: #1e293b;
+        }
+        
+        .tagline-area {
+            text-align: right;
+            font-weight: 600;
+            font-size: 28px;
+            color: #1e293b;
+            line-height: 1.2;
+            margin-right: 30px;
+        }
+        
+        .clear-center {
+            flex: 1;
+            /* This area remains clear for potential Play button overlay */
+        }
+    </style>
+</head>
+<body>
+    <div class="feature-graphic">
+        <div class="logo-area">
+            <div class="logo-symbol">S</div>
+            <span class="logo-text">SpendBot</span>
+        </div>
+        
+        <div class="clear-center"></div>
+        
+        <div class="tagline-area">
+            Expenses. Tracked.<br>Effortlessly.
+        </div>
+    </div>
+</body>
+</html>

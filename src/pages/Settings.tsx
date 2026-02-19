@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Plus, Pencil, Trash2, Check, X, AlertTriangle, ChevronRight } from 'lucide-react';
 import ShimmerBar from '../components/ShimmerBar';
+import PaywallModal from '../components/PaywallModal';
 import {
   getCategories,
   getSettings,
@@ -91,6 +92,7 @@ export default function Settings() {
 
   // Clear data confirmation
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // Is PWA installed
   const isInstalled = window.matchMedia('(display-mode: standalone)').matches;
@@ -366,7 +368,7 @@ export default function Settings() {
           whileTap={{ scale: 0.98 }}
           className="mx-4 w-[calc(100%-2rem)] p-4 rounded-2xl text-center mb-6"
           style={{ background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)' }}
-          onClick={() => {}}
+          onClick={() => setShowPaywall(true)}
         >
           <span className="text-base font-semibold text-white">✨ Upgrade to Premium</span>
         </motion.button>
@@ -630,6 +632,20 @@ export default function Settings() {
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Paywall Modal */}
+      <AnimatePresence>
+        {showPaywall && (
+          <PaywallModal
+            onDismiss={() => setShowPaywall(false)}
+            onPurchaseSuccess={() => {
+              setShowPaywall(false);
+              // Refresh settings to reflect premium status
+              getSettings().then(s => s && setSettings(s));
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

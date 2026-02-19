@@ -1,0 +1,9 @@
+{
+  "name": "spendbot-playstore-assets",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "puppeteer": "^21.0.0",
+    "sharp": "^0.32.0"
+  }
+}

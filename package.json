@@ -16,6 +16,7 @@
     "@capacitor/ios": "^8.0.2",
     "@stripe/stripe-js": "^2.4.0",
     "@supabase/supabase-js": "^2.95.2",
+    "cordova-plugin-purchase": "^13.13.0",
     "dexie": "^4.3.0",
     "dexie-react-hooks": "^4.2.0",
     "framer-motion": "^12.29.2",

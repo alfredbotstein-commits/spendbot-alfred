@@ -247,6 +247,10 @@ export default function AddExpense() {
           <PaywallModal
             onDismiss={() => setShowPaywall(false)}
             expenseCount={expenseCount}
+            onPurchaseSuccess={() => {
+              setIsPremium(true);
+              setShowPaywall(false);
+            }}
           />
         )}
       </AnimatePresence>
