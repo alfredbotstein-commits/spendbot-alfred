@@ -5,10 +5,15 @@ android {
     compileSdk = rootProject.ext.compileSdkVersion
     signingConfigs {
         release {
-            storeFile file('../spendbot-release.keystore')
-            storePassword 'Sp3ndB0t2026!'
-            keyAlias 'spendbot'
-            keyPassword 'Sp3ndB0t2026!'
+            def keystorePropertiesFile = rootProject.file("keystore.properties")
+            def keystoreProperties = new Properties()
+            if (keystorePropertiesFile.exists()) {
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+            }
+            storeFile file(keystoreProperties['storeFile'] ?: '../spendbot-release.keystore')
+            storePassword keystoreProperties['storePassword'] ?: ''
+            keyAlias keystoreProperties['keyAlias'] ?: 'spendbot'
+            keyPassword keystoreProperties['keyPassword'] ?: ''
         }
     }
     defaultConfig {
