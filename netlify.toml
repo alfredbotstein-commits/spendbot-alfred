@@ -6,6 +6,12 @@
 [functions]
   node_bundler = "esbuild"
 
+# Privacy policy - serve static file
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy.html"
+  status = 200
+
 # SPA catch-all - Netlify automatically handles /.netlify/functions routes
 [[redirects]]
   from = "/*"
