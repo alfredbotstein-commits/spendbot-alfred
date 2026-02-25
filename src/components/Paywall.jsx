@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { redirectToCheckout } from '../lib/stripe';
+import { usePurchase } from '../hooks/usePurchase';
 
 const FEATURES = [
   { emoji: '♾️', text: 'Unlimited expenses' },
@@ -15,35 +15,35 @@ const FEATURES = [
 export function Paywall({ monthCount, onClose }) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const { status, error, offerings, purchase, restore, isStoreAvailable } = usePurchase();
+
+  const loading = status === 'purchasing' || status === 'restoring';
+
+  // Get the first package from offerings for price display
+  const currentPackage = offerings?.[0]?.availablePackages?.[0];
+  const priceString = currentPackage?.product?.priceString || '$4.99';
 
   const handleSignIn = () => {
     onClose();
-    // Navigate to root which will show auth screen for unauthenticated users
     navigate('/');
-    // Force a page reload to reset auth state and show login
     window.location.reload();
   };
 
   const handleUpgrade = async () => {
     if (!user) {
-      // This shouldn't happen in normal flow, but handle gracefully
-      setError('Please sign in to continue');
       return;
     }
 
-    setLoading(true);
-    setError(null);
-
-    try {
-      await redirectToCheckout(user.id, user.email);
-      // User will be redirected to Stripe
-    } catch (err) {
-      console.error('Checkout error:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
-      setLoading(false);
+    if (isStoreAvailable && currentPackage) {
+      await purchase(currentPackage);
+    } else {
+      // Fallback: attempt default purchase
+      await purchase();
     }
+  };
+
+  const handleRestore = async () => {
+    await restore();
   };
 
   return (
@@ -94,7 +94,7 @@ export function Paywall({ monthCount, onClose }) {
         {/* Price */}
         <div className="text-center mb-6">
           <div className="flex items-baseline justify-center gap-1">
-            <span className="text-4xl font-bold text-text-primary">$4.99</span>
+            <span className="text-4xl font-bold text-text-primary">{priceString}</span>
             <span className="text-text-muted">lifetime</span>
           </div>
           <p className="text-text-muted text-sm mt-1">
@@ -134,7 +134,7 @@ export function Paywall({ monthCount, onClose }) {
                      rounded-2xl font-semibold text-lg shadow-lg shadow-accent/30
                      disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {loading ? (
+          {status === 'purchasing' ? (
             <span className="flex items-center justify-center gap-2">
               <motion.span
                 animate={{ rotate: 360 }}
@@ -142,18 +142,27 @@ export function Paywall({ monthCount, onClose }) {
               >
                 ⚙️
               </motion.span>
-              Loading...
+              Processing...
             </span>
           ) : (
             'Upgrade to Premium'
           )}
         </motion.button>
 
+        {/* Restore */}
+        <button
+          onClick={handleRestore}
+          disabled={loading}
+          className="w-full py-3 text-accent text-sm mt-2 disabled:opacity-50"
+        >
+          {status === 'restoring' ? 'Restoring...' : 'Restore Purchases'}
+        </button>
+
         {/* Dismiss */}
         <button
           onClick={onClose}
           disabled={loading}
-          className="w-full py-3 text-text-muted text-sm mt-3 disabled:opacity-50"
+          className="w-full py-3 text-text-muted text-sm mt-1 disabled:opacity-50"
         >
           Maybe Later
         </button>

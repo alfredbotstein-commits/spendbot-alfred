@@ -1,22 +1,38 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { db } from '../db';
 
-// cordova-plugin-purchase exposes CdvPurchase on window
-declare global {
-  interface Window {
-    CdvPurchase?: typeof import('cordova-plugin-purchase')['CdvPurchase'];
-  }
-}
+// RevenueCat types
+let Purchases: any = null;
 
-const PRODUCT_ID = 'spendbot_pro';
+const REVENUECAT_API_KEY_ANDROID = 'YOUR_REVENUECAT_ANDROID_API_KEY';
+const REVENUECAT_API_KEY_IOS = 'YOUR_REVENUECAT_IOS_API_KEY';
+const ENTITLEMENT_ID = 'premium';
 
 type PurchaseStatus = 'idle' | 'loading' | 'purchasing' | 'restoring' | 'success' | 'error';
+
+export interface Offering {
+  identifier: string;
+  availablePackages: Package[];
+}
+
+export interface Package {
+  identifier: string;
+  packageType: string;
+  product: {
+    title: string;
+    description: string;
+    priceString: string;
+    price: number;
+  };
+}
 
 interface UsePurchaseReturn {
   status: PurchaseStatus;
   error: string | null;
   isPremium: boolean;
-  purchase: () => Promise<void>;
+  offerings: Offering[];
+  purchase: (pkg?: Package) => Promise<void>;
   restore: () => Promise<void>;
   isStoreAvailable: boolean;
 }
@@ -26,16 +42,29 @@ export function usePurchase(): UsePurchaseReturn {
   const [error, setError] = useState<string | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const [isStoreAvailable, setIsStoreAvailable] = useState(false);
+  const [offerings, setOfferings] = useState<Offering[]>([]);
   const initializedRef = useRef(false);
 
   const markPremium = useCallback(async () => {
     await db.settings.update('settings', {
       isPremium: true,
       purchaseDate: new Date(),
-      purchasePlatform: 'android' as const,
+      purchasePlatform: Capacitor.getPlatform() as 'android' | 'ios',
     });
     setIsPremium(true);
     setStatus('success');
+  }, []);
+
+  const checkEntitlement = useCallback(async (): Promise<boolean> => {
+    if (!Purchases) return false;
+    try {
+      const { customerInfo } = await Purchases.getCustomerInfo();
+      const entitlement = customerInfo.entitlements.active[ENTITLEMENT_ID];
+      return !!entitlement;
+    } catch (err) {
+      console.error('[RevenueCat] Error checking entitlement:', err);
+      return false;
+    }
   }, []);
 
   // Check local premium status
@@ -49,81 +78,61 @@ export function usePurchase(): UsePurchaseReturn {
     })();
   }, []);
 
-  // Initialize store
+  // Initialize RevenueCat
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    const initStore = () => {
-      const CdvPurchase = window.CdvPurchase;
-      if (!CdvPurchase) {
-        console.log('[IAP] CdvPurchase not available (web/dev mode)');
+    const init = async () => {
+      const platform = Capacitor.getPlatform();
+      if (platform === 'web') {
+        console.log('[RevenueCat] Not available on web');
         setStatus('idle');
         return;
       }
 
-      const { store, Platform, ProductType } = CdvPurchase;
-      setIsStoreAvailable(true);
+      try {
+        // Dynamic import for native only
+        const mod = await import('@revenuecat/purchases-capacitor');
+        Purchases = mod.Purchases;
 
-      // Register product
-      store.register([
-        {
-          id: PRODUCT_ID,
-          type: ProductType.NON_CONSUMABLE,
-          platform: Platform.GOOGLE_PLAY,
-        },
-      ]);
+        const apiKey = platform === 'ios' ? REVENUECAT_API_KEY_IOS : REVENUECAT_API_KEY_ANDROID;
 
-      // Listen for approved transactions
-      store.when().approved((transaction) => {
-        console.log('[IAP] Purchase approved:', transaction.transactionId);
-        // Finish the transaction (acknowledge it with Google Play)
-        transaction.finish();
-      });
+        await Purchases.configure({ apiKey });
+        console.log('[RevenueCat] Configured successfully');
+        setIsStoreAvailable(true);
 
-      // Listen for finished (verified + acknowledged)
-      store.when().finished((transaction) => {
-        console.log('[IAP] Purchase finished:', transaction.transactionId);
-        markPremium();
-      });
-
-      // Listen for product updates to detect owned products (restore)
-      store.when().productUpdated((product) => {
-        if (product.id === PRODUCT_ID && product.owned) {
-          console.log('[IAP] Product already owned');
-          markPremium();
-        }
-      });
-
-      // Initialize
-      store.initialize([Platform.GOOGLE_PLAY])
-        .then(() => {
-          console.log('[IAP] Store initialized');
+        // Check existing entitlements
+        const hasPremium = await checkEntitlement();
+        if (hasPremium) {
+          await markPremium();
+        } else {
           setStatus('idle');
-        })
-        .catch((err: Error) => {
-          console.error('[IAP] Store init error:', err);
-          setStatus('idle'); // Don't block the app
-        });
+        }
+
+        // Fetch offerings
+        try {
+          const { offerings: offeringsResult } = await Purchases.getOfferings();
+          if (offeringsResult.current) {
+            setOfferings([offeringsResult.current]);
+          }
+          if (offeringsResult.all) {
+            setOfferings(Object.values(offeringsResult.all));
+          }
+        } catch (err) {
+          console.warn('[RevenueCat] Failed to fetch offerings:', err);
+        }
+      } catch (err) {
+        console.error('[RevenueCat] Init error:', err);
+        setStatus('idle');
+      }
     };
 
-    // Wait for deviceready if in Capacitor
-    if (document.readyState === 'complete' && window.CdvPurchase) {
-      initStore();
-    } else {
-      document.addEventListener('deviceready', initStore, false);
-      // Fallback timeout for web
-      setTimeout(() => {
-        if (!isStoreAvailable) {
-          setStatus('idle');
-        }
-      }, 3000);
-    }
-  }, [markPremium, isStoreAvailable]);
+    init();
+  }, [checkEntitlement, markPremium]);
 
-  const purchase = useCallback(async () => {
-    const CdvPurchase = window.CdvPurchase;
-    if (!CdvPurchase) {
+  const purchase = useCallback(async (pkg?: Package) => {
+    if (!Purchases) {
       setError('Store not available. Please try again later.');
       setStatus('error');
       return;
@@ -133,49 +142,41 @@ export function usePurchase(): UsePurchaseReturn {
     setError(null);
 
     try {
-      const { store } = CdvPurchase;
-      const product = store.get(PRODUCT_ID);
-
-      if (!product) {
-        setError('Product not found. Please try again later.');
-        setStatus('error');
-        return;
-      }
-
-      // Check if already owned
-      if (product.owned) {
-        await markPremium();
-        return;
-      }
-
-      const offer = product.getOffer();
-      if (!offer) {
-        setError('No offer available. Please try again later.');
-        setStatus('error');
-        return;
-      }
-
-      const orderResult = await store.order(offer);
-      if (orderResult && orderResult.isError) {
-        // User cancelled or error
-        if (orderResult.code === CdvPurchase.ErrorCode.PAYMENT_CANCELLED) {
-          setStatus('idle'); // Silent cancel
-        } else {
-          setError(orderResult.message || 'Purchase failed. Please try again.');
+      let result;
+      if (pkg) {
+        result = await Purchases.purchasePackage({ aPackage: pkg });
+      } else {
+        // Use first available package from current offering
+        const { offerings: off } = await Purchases.getOfferings();
+        const defaultPkg = off.current?.availablePackages?.[0];
+        if (!defaultPkg) {
+          setError('No products available. Please try again later.');
           setStatus('error');
+          return;
         }
+        result = await Purchases.purchasePackage({ aPackage: defaultPkg });
       }
-      // If no error, the approved/finished listeners handle the rest
-    } catch (err) {
-      console.error('[IAP] Purchase error:', err);
-      setError('Something went wrong. Please try again.');
-      setStatus('error');
+
+      const entitlement = result.customerInfo.entitlements.active[ENTITLEMENT_ID];
+      if (entitlement) {
+        await markPremium();
+      } else {
+        setStatus('idle');
+      }
+    } catch (err: any) {
+      if (err.code === 1 || err.message?.includes('cancel')) {
+        // User cancelled
+        setStatus('idle');
+      } else {
+        console.error('[RevenueCat] Purchase error:', err);
+        setError('Something went wrong. Please try again.');
+        setStatus('error');
+      }
     }
   }, [markPremium]);
 
   const restore = useCallback(async () => {
-    const CdvPurchase = window.CdvPurchase;
-    if (!CdvPurchase) {
+    if (!Purchases) {
       setError('Store not available.');
       setStatus('error');
       return;
@@ -185,23 +186,20 @@ export function usePurchase(): UsePurchaseReturn {
     setError(null);
 
     try {
-      const { store } = CdvPurchase;
-      await store.restorePurchases();
-
-      // Check if product is now owned
-      const product = store.get(PRODUCT_ID);
-      if (product?.owned) {
+      const { customerInfo } = await Purchases.restorePurchases();
+      const entitlement = customerInfo.entitlements.active[ENTITLEMENT_ID];
+      if (entitlement) {
         await markPremium();
       } else {
         setError('No previous purchase found.');
         setStatus('idle');
       }
     } catch (err) {
-      console.error('[IAP] Restore error:', err);
+      console.error('[RevenueCat] Restore error:', err);
       setError('Restore failed. Please try again.');
       setStatus('error');
     }
   }, [markPremium]);
 
-  return { status, error, isPremium, purchase, restore, isStoreAvailable };
+  return { status, error, isPremium, offerings, purchase, restore, isStoreAvailable };
 }

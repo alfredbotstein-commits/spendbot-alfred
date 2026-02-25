@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../utils/format';
 import { signOut } from '../lib/supabase';
-import { redirectToCheckout } from '../lib/stripe';
+import { usePurchase } from '../hooks/usePurchase';
 import { Toast } from './Toast';
 
 function SettingRow({ label, description, children }) {
@@ -71,26 +71,24 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
   const [exporting, setExporting] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [showExportSuccess, setShowExportSuccess] = useState(false);
-  const [upgrading, setUpgrading] = useState(false);
-  const [upgradeError, setUpgradeError] = useState(null);
+  const { status: purchaseStatus, error: purchaseError, purchase, restore, offerings } = usePurchase();
+
+  const upgrading = purchaseStatus === 'purchasing';
+  const restoring = purchaseStatus === 'restoring';
+
+  const currentPackage = offerings?.[0]?.availablePackages?.[0];
+  const priceString = currentPackage?.product?.priceString || '$4.99';
 
   const handleUpgrade = async () => {
-    if (!user) {
-      setUpgradeError('Please sign in to upgrade');
-      return;
+    if (currentPackage) {
+      await purchase(currentPackage);
+    } else {
+      await purchase();
     }
-    
-    setUpgrading(true);
-    setUpgradeError(null);
-    
-    try {
-      await redirectToCheckout(user.id, user.email);
-      // User will be redirected to Stripe
-    } catch (err) {
-      console.error('Checkout error:', err);
-      setUpgradeError(err.message || 'Failed to start checkout. Please try again.');
-      setUpgrading(false);
-    }
+  };
+
+  const handleRestore = async () => {
+    await restore();
   };
 
   // Sync budget state when settings load/change
@@ -289,13 +287,20 @@ export function Settings({ settings, categories, onUpdate, onExport, onClearAll,
                 <div className="flex flex-col items-end gap-1">
                   <button 
                     onClick={handleUpgrade}
-                    disabled={upgrading}
+                    disabled={upgrading || restoring}
                     className="px-4 py-2 bg-accent text-white rounded-xl font-medium text-sm disabled:opacity-50"
                   >
-                    {upgrading ? 'Loading...' : 'Upgrade $4.99'}
+                    {upgrading ? 'Loading...' : `Upgrade ${priceString}`}
                   </button>
-                  {upgradeError && (
-                    <span className="text-red-400 text-xs">{upgradeError}</span>
+                  <button
+                    onClick={handleRestore}
+                    disabled={upgrading || restoring}
+                    className="text-accent text-xs font-medium disabled:opacity-50"
+                  >
+                    {restoring ? 'Restoring...' : 'Restore Purchases'}
+                  </button>
+                  {purchaseError && (
+                    <span className="text-red-400 text-xs">{purchaseError}</span>
                   )}
                 </div>
               )}
