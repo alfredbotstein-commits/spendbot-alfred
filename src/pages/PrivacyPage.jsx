@@ -156,7 +156,7 @@ export function PrivacyPage() {
               </li>
               <li className="flex gap-2">
                 <span className="text-accent">•</span>
-                <span><strong>Stripe:</strong> Secure payment processing (we never see your card details)</span>
+                <span><strong>App Store & Google Play:</strong> In-app purchases processed securely through your device's app store</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-accent">•</span>

@@ -104,7 +104,7 @@ export function TermsPage() {
               Payment Terms
             </h2>
             <p className="text-text-secondary leading-relaxed mb-3">
-              Premium purchases are processed securely through Stripe. By making a purchase, you agree that:
+              Premium purchases are processed through the Apple App Store or Google Play Store as in-app purchases. By making a purchase, you agree that:
             </p>
             <ul className="text-text-secondary space-y-2 ml-4">
               <li className="flex gap-2">

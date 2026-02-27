@@ -22,7 +22,6 @@ const Settings = lazy(() => import('./components/Settings').then(m => ({ default
 const Onboarding = lazy(() => import('./components/Onboarding').then(m => ({ default: m.Onboarding })));
 const Paywall = lazy(() => import('./components/Paywall').then(m => ({ default: m.Paywall })));
 const CalendarView = lazy(() => import('./components/CalendarView').then(m => ({ default: m.CalendarView })));
-const PremiumSuccess = lazy(() => import('./components/PremiumSuccess').then(m => ({ default: m.PremiumSuccess })));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then(m => ({ default: m.TermsPage })));
 const TestPage = lazy(() => import('./pages/TestPage').then(m => ({ default: m.TestPage })));
@@ -302,15 +301,6 @@ function App() {
           <Suspense fallback={<RouteFallback />}>
             <TermsPage />
           </Suspense>
-        } />
-        
-        {/* Premium success page - needs AuthProvider for user context */}
-        <Route path="/success" element={
-          <AuthProvider>
-            <Suspense fallback={<RouteFallback />}>
-              <PremiumSuccess />
-            </Suspense>
-          </AuthProvider>
         } />
         
         {/* Main app - wrapped in AuthProvider */}

@@ -8,7 +8,6 @@ import { History } from '../components/History';
 import { Settings } from '../components/Settings';
 import { Onboarding } from '../components/Onboarding';
 import { Paywall } from '../components/Paywall';
-import { PremiumSuccess } from '../components/PremiumSuccess';
 import { DEFAULT_CATEGORIES } from '../constants/categories';
 
 // Mock data for testing
@@ -112,10 +111,6 @@ export function TestPage() {
       case 'paywall':
         return (
           <Paywall monthCount={50} onClose={() => setCurrentScreen('dashboard')} />
-        );
-      case 'success':
-        return (
-          <PremiumSuccess />
         );
       default:
         return null;
