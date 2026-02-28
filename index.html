@@ -1,21 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#0A0A0F" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="description" content="Track spending in seconds. No ads. No subscription." />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <title>SpendBot - Expense Tracker</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpendBot — Smart Expense Tracking</title>
+  <meta name="description" content="SpendBot helps you track spending, set budgets, and save money — effortlessly. Available on iOS and Android.">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #1a56db;
+      --blue-dark: #1342a8;
+      --green: #0d9488;
+      --green-light: #ccfbf1;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--gray-900);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--blue); text-decoration: none; }
+
+    /* NAV */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1120px; margin: 0 auto; padding: 20px 24px;
+    }
+    .logo { font-size: 22px; font-weight: 700; color: var(--green); }
+    .logo span { color: var(--blue); }
+    nav a.nav-link { color: var(--gray-500); font-size: 15px; font-weight: 500; }
+    nav a.nav-link:hover { color: var(--gray-900); }
+
+    /* HERO */
+    .hero {
+      text-align: center; padding: 80px 24px 60px;
+      background: linear-gradient(180deg, #f0fdfa 0%, #fff 100%);
+    }
+    .hero h1 {
+      font-size: clamp(36px, 5vw, 56px); font-weight: 700;
+      line-height: 1.15; max-width: 700px; margin: 0 auto 20px;
+    }
+    .hero h1 em { font-style: normal; color: var(--green); }
+    .hero p {
+      font-size: 18px; color: var(--gray-500); max-width: 520px; margin: 0 auto 36px;
+    }
+    .cta-group { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: 12px; font-size: 16px; font-weight: 600;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-secondary { background: var(--gray-900); color: #fff; }
+    .btn svg { width: 22px; height: 22px; fill: currentColor; }
+
+    /* FEATURES */
+    .features {
+      max-width: 1120px; margin: 0 auto; padding: 80px 24px;
+    }
+    .features h2 {
+      text-align: center; font-size: 32px; font-weight: 700; margin-bottom: 12px;
+    }
+    .features .subtitle {
+      text-align: center; color: var(--gray-500); font-size: 17px; margin-bottom: 56px;
+    }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px;
+    }
+    .feature-card {
+      background: var(--gray-50); border-radius: 16px; padding: 32px;
+      border: 1px solid var(--gray-200);
+    }
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 16px;
+      background: var(--green-light); color: var(--green);
+    }
+    .feature-card h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .feature-card p { font-size: 15px; color: var(--gray-500); line-height: 1.5; }
+
+    /* SCREENSHOTS */
+    .screenshots {
+      background: var(--gray-50); padding: 80px 24px; text-align: center;
+    }
+    .screenshots h2 { font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+    .screenshots .subtitle { color: var(--gray-500); font-size: 17px; margin-bottom: 48px; }
+    .phone-mockups {
+      display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; max-width: 800px; margin: 0 auto;
+    }
+    .phone-frame {
+      width: 220px; height: 440px; background: var(--gray-200); border-radius: 32px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gray-500); font-size: 14px; font-weight: 500;
+      border: 2px solid var(--gray-200); position: relative; overflow: hidden;
+    }
+
+    /* CTA BOTTOM */
+    .cta-bottom {
+      text-align: center; padding: 80px 24px;
+      background: linear-gradient(180deg, #fff 0%, #eff6ff 100%);
+    }
+    .cta-bottom h2 { font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+    .cta-bottom p { color: var(--gray-500); font-size: 17px; margin-bottom: 36px; }
+
+    /* FOOTER */
+    footer {
+      text-align: center; padding: 32px 24px; border-top: 1px solid var(--gray-200);
+      font-size: 14px; color: var(--gray-500);
+    }
+    footer a { color: var(--gray-500); }
+    footer a:hover { color: var(--gray-900); }
+
+    @media (max-width: 600px) {
+      .hero { padding: 48px 20px 40px; }
+      .features, .screenshots, .cta-bottom { padding: 56px 20px; }
+      .phone-frame { width: 160px; height: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="logo">Spend<span>Bot</span></div>
+    <a href="/privacy" class="nav-link">Privacy</a>
+  </nav>
+
+  <section class="hero">
+    <h1>Track your spending. <em>Save more.</em></h1>
+    <p>SpendBot makes expense tracking effortless. Set budgets, see where your money goes, and hit your savings goals.</p>
+    <div class="cta-group">
+      <a href="#" class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+        App Store
+      </a>
+      <a href="#" class="btn btn-secondary">
+        <svg viewBox="0 0 24 24"><path d="M3.61 1.814L13.793 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.61-.92zm.503-.385l11.27 6.503L12.467 12l-8.354-10.57zm0 21.142L12.467 12l2.916 4.068-11.27 6.503zM21.4 11.11l-3.155-1.82-3.372 2.71 3.372 2.71 3.155-1.82a1.003 1.003 0 000-1.78z"/></svg>
+        Google Play
+      </a>
+    </div>
+  </section>
+
+  <section class="features">
+    <h2>Why SpendBot?</h2>
+    <p class="subtitle">Everything you need to take control of your finances.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Instant Insights</h3>
+        <p>See exactly where your money goes with automatic categorization and beautiful charts.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>Smart Budgets</h3>
+        <p>Set budgets that actually work. Get nudged before you overspend, not after.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <h3>Spending Alerts</h3>
+        <p>Real-time notifications when you're approaching limits or unusual spending is detected.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Bank-Level Security</h3>
+        <p>Your data is encrypted end-to-end. We never sell your information. Period.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="screenshots">
+    <h2>See it in action</h2>
+    <p class="subtitle">Clean, intuitive design that makes tracking feel effortless.</p>
+    <div class="phone-mockups">
+      <div class="phone-frame">Screenshot 1</div>
+      <div class="phone-frame">Screenshot 2</div>
+      <div class="phone-frame">Screenshot 3</div>
+    </div>
+  </section>
+
+  <section class="cta-bottom">
+    <h2>Start saving today</h2>
+    <p>Join thousands who've taken control of their spending with SpendBot.</p>
+    <div class="cta-group">
+      <a href="#" class="btn btn-primary">Download Free</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2026 SpendBot. <a href="/privacy">Privacy Policy</a></p>
+  </footer>
+</body>
 </html>
-<!-- Deploy trigger 1770311707 -->
-<!-- Deploy trigger 1770312265 -->

@@ -1,19 +1,4 @@
-[build]
-  publish = "dist"
-  command = "npm run build"
-  functions = "netlify/functions"
-
-[functions]
-  node_bundler = "esbuild"
-
-# Privacy policy - serve static file
 [[redirects]]
   from = "/privacy"
   to = "/privacy.html"
-  status = 200
-
-# SPA catch-all - Netlify automatically handles /.netlify/functions routes
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
   status = 200

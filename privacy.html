@@ -4,74 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy Policy — SpendBot</title>
+  <meta name="description" content="SpendBot Privacy Policy — how we handle your data.">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #08080C;
-      color: #FAFAFA;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      line-height: 1.7;
-    }
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 48px 24px 80px;
-    }
-    h1 {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      background: linear-gradient(135deg, #6366F1, #818CF8);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .updated {
-      color: #71717A;
-      font-size: 0.875rem;
-      margin-bottom: 40px;
-    }
-    h2 {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: #FAFAFA;
-      margin-top: 36px;
-      margin-bottom: 12px;
-    }
-    p, li {
-      color: #A1A1AA;
-      font-size: 0.975rem;
-      margin-bottom: 12px;
-    }
-    ul {
-      padding-left: 20px;
-      margin-bottom: 12px;
-    }
-    li { margin-bottom: 6px; }
-    strong { color: #FAFAFA; font-weight: 500; }
-    a {
-      color: #818CF8;
-      text-decoration: none;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, sans-serif; color: #111827; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+    .container { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+    a { color: #1a56db; text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .highlight {
-      background: #111116;
-      border: 1px solid #2A2A35;
-      border-radius: 12px;
-      padding: 20px 24px;
-      margin: 20px 0;
-    }
-    .back {
-      display: inline-block;
-      margin-bottom: 32px;
-      color: #71717A;
-      font-size: 0.875rem;
-    }
-    .back:hover { color: #A1A1AA; }
+    .back { display: inline-block; margin-bottom: 32px; color: #6b7280; font-size: 14px; }
+    .back:hover { color: #111827; text-decoration: none; }
+    h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; color: #0d9488; }
+    .updated { color: #6b7280; font-size: 14px; margin-bottom: 40px; }
+    h2 { font-size: 20px; font-weight: 600; margin-top: 36px; margin-bottom: 12px; }
+    p, li { color: #374151; font-size: 16px; margin-bottom: 12px; }
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    strong { color: #111827; font-weight: 600; }
+    .highlight { background: #f0fdfa; border: 1px solid #ccfbf1; border-radius: 12px; padding: 20px 24px; margin: 20px 0; }
   </style>
 </head>
 <body>
@@ -87,7 +41,7 @@
     </div>
 
     <h2>1. Data Stored on Your Device</h2>
-    <p>The core of SpendBot runs entirely on your device using local storage (IndexedDB/Dexie). This includes:</p>
+    <p>The core of SpendBot runs entirely on your device using local storage. This includes:</p>
     <ul>
       <li>Expenses and transaction history</li>
       <li>Budgets and spending limits</li>
@@ -99,8 +53,8 @@
     <h2>2. Data We Collect</h2>
     <p>We collect only what's strictly necessary:</p>
     <ul>
-      <li><strong>Email address</strong> — for account authentication via Supabase</li>
-      <li><strong>Subscription status</strong> — purchase history processed through Stripe for premium features</li>
+      <li><strong>Email address</strong> — for account authentication</li>
+      <li><strong>Subscription status</strong> — purchase history for premium features</li>
     </ul>
     <p>That's it. No tracking. No analytics profiles. No behavioral data.</p>
 
@@ -109,7 +63,6 @@
       <li><strong>Supabase</strong> — handles authentication and premium feature access only</li>
       <li><strong>Stripe</strong> — processes subscription payments securely. We never see or store your full card details.</li>
     </ul>
-    <p>Both services have their own privacy policies and are industry-standard for security.</p>
 
     <h2>4. Data We Never Sell</h2>
     <p>We do not sell, rent, trade, or share your personal data with third parties for marketing or advertising purposes. <strong>Ever.</strong></p>
@@ -118,9 +71,8 @@
     <p>All data transmitted between your device and our services is <strong>encrypted in transit</strong> using TLS/HTTPS. Your on-device data is protected by your device's own security measures.</p>
 
     <h2>6. Your Rights</h2>
-    <p>You are in control of your data:</p>
     <ul>
-      <li><strong>Delete your account</strong> — available in Settings within the app. This removes your authentication data from our servers.</li>
+      <li><strong>Delete your account</strong> — available in Settings within the app.</li>
       <li><strong>Delete local data</strong> — clear the app's storage or uninstall to remove all on-device data.</li>
       <li><strong>Export</strong> — your data lives on your device, accessible to you at all times.</li>
     </ul>
@@ -132,7 +84,7 @@
     <p>If we update this policy, we'll revise the "Last updated" date above. Continued use of SpendBot after changes constitutes acceptance.</p>
 
     <h2>9. Contact Us</h2>
-    <p>Questions or concerns? Reach us at <a href="mailto:support@loopspur.ai">support@loopspur.ai</a></p>
+    <p>Questions? Reach us at <a href="mailto:support@loopspur.ai">support@loopspur.ai</a></p>
   </div>
 </body>
 </html>
